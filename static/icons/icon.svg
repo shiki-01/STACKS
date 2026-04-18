@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <circle cx="256" cy="256" r="256" fill="#3B82F6"/>
+  <!-- コイン外枠 -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#BFDBFE" stroke-width="12"/>
+  <!-- NFC電波 -->
+  <path d="M 186 196 Q 256 140 326 196" fill="none" stroke="white" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 206 228 Q 256 186 306 228" fill="none" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M 226 260 Q 256 232 286 260" fill="none" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <!-- チェックマーク -->
+  <circle cx="256" cy="330" r="36" fill="white"/>
+  <path d="M 238 330 L 251 344 L 276 316" fill="none" stroke="#3B82F6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

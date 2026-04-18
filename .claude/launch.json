@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Dev Server (HTTP)",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "dev", "--port", "5299"],
+      "port": 5299
+    },
+    {
+      "name": "Dev Server (HTTPS / NFC対応)",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "dev", "--mode", "https"],
+      "port": 5173
+    },
+    {
+      "name": "Preview (ビルド後)",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "preview"],
+      "port": 4173
+    }
+  ]
+}
