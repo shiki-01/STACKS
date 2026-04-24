@@ -67,7 +67,8 @@ export const filteredTasks = derived([tasks, filter, sortBy], ([$tasks, $filter,
 		if ($filter.category && t.category !== $filter.category) return false;
 		if ($filter.search) {
 			const q = $filter.search.toLowerCase();
-			if (!t.title.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q)) return false;
+			if (!t.title.toLowerCase().includes(q) && !t.description.toLowerCase().includes(q))
+				return false;
 		}
 		return true;
 	});

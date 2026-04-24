@@ -209,7 +209,9 @@ export interface Task {
 }
 
 // --- Firestore CRUD ---
-export async function createTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+export async function createTask(
+	task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<string> {
 	const ref = await addDoc(collection(db, 'tasks'), {
 		...task,
 		createdAt: serverTimestamp(),

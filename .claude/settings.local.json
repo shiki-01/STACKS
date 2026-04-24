@@ -1,23 +1,23 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(bun add:*)",
-      "Bash(bun run:*)",
-      "Bash(node -e ':*)",
-      "mcp__Claude_Preview__preview_start",
-      "Bash(PORT=51352 bun run dev)",
-      "Bash(curl -s http://localhost:51352/)",
-      "Bash(taskkill /F /IM bun.exe)",
-      "Bash(curl -s http://localhost:56893/)",
-      "Bash(curl -s http://localhost:5173/)",
-      "WebFetch(domain:api.anthropic.com)",
-      "Bash(gunzip -c webfetch-1776501206438-30t391.bin)",
-      "Bash(tar -x -O hack-1-online4/project/components/tokens.jsx)",
-      "Bash(tar -x -O hack-1-online4/project/components/screens.jsx)",
-      "Bash(tar -x -O hack-1-online4/project/components/code.jsx)",
-      "Bash(netstat -ano)",
-      "Bash(tasklist /FI \"PID eq 35360\")",
-      "Bash(tasklist /FI \"PID eq 35704\")"
-    ]
-  }
+	"permissions": {
+		"allow": [
+			"Bash(bun add:*)",
+			"Bash(bun run:*)",
+			"Bash(node -e ':*)",
+			"mcp__Claude_Preview__preview_start",
+			"Bash(PORT=51352 bun run dev)",
+			"Bash(curl -s http://localhost:51352/)",
+			"Bash(taskkill /F /IM bun.exe)",
+			"Bash(curl -s http://localhost:56893/)",
+			"Bash(curl -s http://localhost:5173/)",
+			"WebFetch(domain:api.anthropic.com)",
+			"Bash(gunzip -c webfetch-1776501206438-30t391.bin)",
+			"Bash(tar -x -O hack-1-online4/project/components/tokens.jsx)",
+			"Bash(tar -x -O hack-1-online4/project/components/screens.jsx)",
+			"Bash(tar -x -O hack-1-online4/project/components/code.jsx)",
+			"Bash(netstat -ano)",
+			"Bash(tasklist /FI \"PID eq 35360\")",
+			"Bash(tasklist /FI \"PID eq 35704\")"
+		]
+	}
 }

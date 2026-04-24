@@ -21,15 +21,15 @@ export default defineConfig(
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
 			'no-undef': 'off',
-			"no-unused-vars": "off",
-			"@typescript-eslint/no-unused-vars": [
-				"warn",
+			'no-unused-vars': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
 				{
-					"args": "all",
-					"argsIgnorePattern": "^_",
-					"varsIgnorePattern": "^_",
-					"caughtErrors": "all",
-					"caughtErrorsIgnorePattern": "^_"
+					args: 'all',
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrors: 'all',
+					caughtErrorsIgnorePattern: '^_'
 				}
 			]
 		}
