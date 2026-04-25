@@ -37,6 +37,14 @@
 
 		if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;
 
+		// サブページ(/table/[id] など)にいる場合は親ページに戻る
+		const tabHref = modes[currentIndex]?.href;
+		if (tabHref && page.url.pathname !== tabHref) {
+			slideDir = -1;
+			goto(resolve(tabHref));
+			return;
+		}
+
 		const next = currentIndex + (dx > 0 ? 1 : -1);
 		if (next >= 0 && next < modes.length) {
 			slideDir = dx > 0 ? 1 : -1;
