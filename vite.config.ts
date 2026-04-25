@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
 			masterCSS(),
 			VitePWA({
 				registerType: 'autoUpdate',
-				manifest: false, // static/manifest.json を使用
+				manifest: false,
 				workbox: {
 					globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
 					runtimeCaching: [

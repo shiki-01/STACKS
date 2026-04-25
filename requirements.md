@@ -111,5 +111,4 @@ Phase 1 (MVP): 認証 + Firestore CRUD + MasterCSSレイアウト
 Phase 2: Google Todo API 連携 + PWA (Service Worker)
 Phase 3: FCM通知 + オフライン同期 + アニメーション
 Phase 4: 本体設計 (3Dプリンター) + ディスプレイ組み込み + デプロイ
-
 ```
