@@ -50,9 +50,9 @@
 			{n}
 		</div>
 	{/each}
-	<div class="hand w:8px h:200px" style={`--hand-color: #F1F1F1; transform: translateX(-50%) rotate(${hourDeg}deg);`}></div>
-	<div class="hand w:8px h:200px" style={`--hand-color: #878787; transform: translateX(-50%) rotate(${minuteDeg}deg);`}></div>
-	<div class="hand w:6px h:200px" style={`--hand-color: #4E4E4E; transform: translateX(-50%) rotate(${secondDeg}deg);`}></div>
+	<div class="hand w:8px h:180px z:4" style={`--hand-color: #F1F1F1; transform: translateX(-50%) rotate(${hourDeg}deg);`}></div>
+	<div class="hand w:8px h:240px z:3" style={`--hand-color: #878787; transform: translateX(-50%) rotate(${minuteDeg}deg);`}></div>
+	<div class="hand w:6px h:240px z:2" style={`--hand-color: #4E4E4E; transform: translateX(-50%) rotate(${secondDeg}deg);`}></div>
 
 	<div class="abs top:50% left:50% w:240px h:240px translate(-50%,-50%) r:full bg:#161616 z:2 flex flex:column ai:center jc:center color:#CFCFCF f:1.25rem font:600">
 		<span class="f:1rem">{hh}:{mm}:{ss}</span>
