@@ -1,52 +1,3 @@
-/* STACKS — Design System Tokens */
-
-:root {
-	/* Brand */
-	--primary: #3b82f6;
-	--primary-deep: #2563eb;
-	--neon: #22d3ee;
-	--violet: #a78bfa;
-
-	/* Status */
-	--success: #10b981;
-	--warning: #f59e0b;
-	--danger: #ef4444;
-
-	/* Surfaces — dark-first */
-	--bg: #0f172a;
-	--surface: #1e293b;
-	--surface2: #334155;
-	--line: #1f2a3f;
-	--text: #e2e8f0;
-	--text-muted: #94a3b8;
-	--text-dim: #64748b;
-
-	/* Radii */
-	--r-card: 20px;
-	--r-input: 14px;
-	--r-pill: 9999px;
-
-	/* Shadows */
-	--shadow-sm: 0 1px 3px rgb(0 0 0 / 0.15);
-	--shadow-md: 0 6px 18px rgb(0 0 0 / 0.25);
-	--shadow-glow: 0 0 40px rgb(34 211 238 / 0.4);
-	--shadow-blue: 0 8px 20px rgb(59 130 246 / 0.4);
-
-	/* Font */
-	--font: Inter, -apple-system, 'SF Pro Display', system-ui, sans-serif;
-}
-
-/* Light theme override */
-[data-theme='light'] {
-	--bg: #f8fafc;
-	--surface: #ffffff;
-	--surface2: #e2e8f0;
-	--line: #e2e8f0;
-	--text: #0f172a;
-	--text-muted: #475569;
-	--text-dim: #94a3b8;
-}
-
 /* Base styles */
 *,
 *::before,
@@ -59,9 +10,6 @@ html {
 }
 
 body {
-	background: var(--bg);
-	color: var(--text);
-	font-family: var(--font);
 	min-height: 100dvh;
 	margin: 0;
 	-webkit-font-smoothing: antialiased;
