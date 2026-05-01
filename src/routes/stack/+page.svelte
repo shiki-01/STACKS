@@ -69,6 +69,9 @@
 
 	onMount(() => {
 		if (!canvas) return;
+		if (typeof window !== "undefined") {
+			window.document.body.style.backgroundColor = "#161616"
+		}
 
 		const tasks = get(pendingTasks);
 

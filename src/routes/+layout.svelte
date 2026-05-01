@@ -111,12 +111,12 @@
 </script>
 
 <main
-	class="w:720px h:720px bg:#4d4d4d r:full flex ai:center jc:center flex-shrink:0"
+	class="w:720px h:720px r:full flex ai:center jc:center flex-shrink:0"
 	style="touch-action: none"
 	onpointerdown={onPointerDown}
 	onpointerup={onPointerUp}
 >
-	<div class="w:100% h:100% bg:#161616 overflow:hidden r:full rel">
+	<div class="w:100% h:100% overflow:hidden r:full rel">
 		{#key page.url.pathname}
 			<div
 				class="page-slide"

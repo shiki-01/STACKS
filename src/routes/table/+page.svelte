@@ -49,6 +49,9 @@
 
 	onMount(() => {
 		if (drum) gsap.set(drum, { rotationX: 0 });
+		if (typeof window !== "undefined") {
+			window.document.body.style.backgroundColor = "#161616"
+		}
 	});
 
 	// ---- Physics: ノブでリスト操作 (modeSwitchEnabled=false 時) ----
