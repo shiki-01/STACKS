@@ -13,7 +13,6 @@ export default defineConfig(({ mode }) => {
 			https: useHttps ? {} : undefined,
 			fs: {
 				allow: [
-					'C:/Users/kishi/Documents/GitHub/hack1-online4-service',
 					'..',
 					'../..',
 					'.claude',

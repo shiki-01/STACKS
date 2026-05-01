@@ -1,42 +1,170 @@
-# sv
+# 忙しさを、美しく。インテリア型タスク管理ソリューション「Stacks」
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Introduction
 
-## Creating a project
+スマートフォンや PC でのタスク管理が当たり前になった今、「やることリスト」はますます増える一方です。ただ、画面の中にあるだけのタスクはどこか実感が薄く、自分がどれだけ抱えているかを把握しにくい側面があります。Stacks は、タスクの量を**可視化・物理化**することで、その課題にアプローチするデバイスです。
 
-If you're seeing this, you've probably already done this step. Congrats!
+---
 
-```sh
-# create a new project
-npx sv create my-app
+## What's Stacks?
+
+### コンセプト
+
+Stacks の開発背景には、日本の単身世帯の増加があります。厚生労働省「国民生活基礎調査」によると、**日本全体の34%は単身世帯**（約1,849.5万世帯）です。自分のことを自分で管理する場面が増えている中で、タスク管理をもう少し楽にしたい、というのが出発点です。
+
+### 3つの中核機能
+
+#### 1. Google Todo リストとの連携
+既存の Google Todo リストと同期します。新しいツールに移行するコストなく使い始められます。
+
+#### 2. 残りタスク量の可視化
+同期されたタスクを、色とサイズが異なるボールとして円形ディスプレイ内に表示します。タスクが「積まれていく」様子をひと目で把握できます。
+
+#### 3. 直感的なタスク操作
+回転する外枠を操作することでページ移動やタスクの選択・完了が可能です。キー入力なしで完結します。
+
+### デザイン哲学：インテリア × タスク管理
+
+Stacks の特徴は、**デバイスであることを主張しすぎないデザイン**です。
+
+- **外観**：部屋に置いても違和感のないインテリアとしての質感
+- **UI/UX**：シンプルで、外観と統一感のある見た目
+- **ネーミング**：タスクが積まれる様子をそのまま「 Stacks 」と表現
+
+---
+
+## Design
+
+### 外観設計
+
+- **形状**：円形（タスクの積み重なりを示唆）
+- **色彩**：優先度・期限に応じた色分け
+- **質感**：インテリアの一部として成立する仕上がり
+
+### UI 階層
+
+```
+/clock（時計・ポモドーロ）
+/stack（タスクの物理可視化）
+/table（タスク一覧・操作）
 ```
 
-To recreate this project with the same configuration:
+---
 
-```sh
-# recreate this project
-bun x sv@0.15.1 create --template minimal --types ts --add prettier eslint --install bun ./
+## Software
+
+### ページ構成
+
+| パス | 内容 |
+|------|------|
+| `/clock` | 時計表示。ポモドーロ・アラームが使える。残りタスク数も表示 |
+| `/stack` | タスクがボールとして円形ディスプレイ内に表示される。物理演算で中に溜まっていく雰囲気を演出。期限・重要度に応じて色が変わる |
+| `/table` | タスクをリスト形式で一覧表示。完了・削除が行える |
+
+### Tech Stack
+
+```
+フレームワーク: SvelteKit 2.57
+ビルドツール: Vite 8.0
+言語: TypeScript 6.0
 ```
 
-## Developing
+**選定理由**：
+- Svelte のリアクティブ性により、リアルタイム同期が必要なタスク表示に向いている
+- SvelteKit は静的・動的どちらも対応可能で、デプロイの柔軟性が高い
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### ライブラリ
 
-```sh
-npm run dev
+| ライブラリ | 用途 | バージョン |
+|----------|------|---------|
+| **GSAP** | タスク表示の変化・完了時のアニメーション | 3.15.0 |
+| **qrcode** | QR コード生成（デバイスペアリング） | 1.5.4 |
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+---
+
+## Hardware
+
+### 構成概要
+
+円形ディスプレイに Raspberry Pi 5 を接続し、Raspberry Pi OS 上で nginx を使ってサーバーを立て、Chromium のキオスクモードで内部の Web アプリを起動しています。
+
+### 入力：回転する外枠
+
+フレームに対して回転できる外枠を設け、磁気角度センサーで回転量を取得しています。これをアプリ側の操作に対応させることで、キー入力なしでデバイスを操作できます。
+
+- **ページ移動**：`/clock`・`/stack`・`/table` の切り替え
+- **遊び要素**：`/stack` にて外枠を回転させると、ボール（タスク）が洗濯機のように動く
+- **リスト操作**：`/table` にて上下スクロール・決定が行える
+
+磁気角度センサーは径方向に配置する独自設計で、回転盤も含めて全て自作しています。
+
+### 筐体
+
+Fusion 360 で設計し、3D プリンターで印刷しています。給電は Type-C で行います。
+
+### WiFi・Google Todo 連携
+
+QR コードを介してセットアップを完結させる設計で、ディスプレイ本体へのキー入力は不要です。
+
+---
+
+## Google Todo 連携
+
+全ステップでユーザー負担を最小化し、QR 中心の設計にしています。
+
+### 全体フロー
+
+1. **初回セットアップ（1回限り）**：AP モードで WiFi 設定 + OAuth 承認
+2. **以降の運用**：自動同期・トークン更新
+
+### 詳細ステップ
+
+#### 1. デバイス起動（AP モード自動起動）
+
+デバイスが WiFi ホットスポットを起動し（SSID: `MyDevice-Setup`）、接続用 QR をディスプレイに表示します。
+
+#### 2. スマホ接続（QR スキャン）
+
+```
+WiFi:S:MyDevice-Setup;T:WPA;P:12345678;;
 ```
 
-## Building
+スマホカメラで QR を読み取ると自動接続されます。
 
-To create a production version of your app:
+#### 3. ローカルページ表示（`192.168.4.1`）
 
-```sh
-npm run build
-```
+Captive Portal で 1 ページのフォームを表示します。
 
-You can preview the production build with `npm run preview`.
+- WiFi 情報の入力（SSID・パスワード・国 JP）
+- Google OAuth 承認ボタン（Tasks スコープ、`redirect_uri=http://192.168.4.1/cb`）
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+承認後、コールバックで `code` を受信し、`access_token` / `refresh_token` を取得・保存します。
+
+#### 4. 設定適用・切断
+
+デバイスが WiFi を再構成（`wpa_supplicant` 更新）して通常ネットワークに接続し、「連携完了」を表示します。
+
+#### 5. 運用
+
+バックグラウンドで Tasks API と同期し、`refresh_token` を自動更新します。以降、追加の承認は不要です。
+
+### 開発時の準備
+
+- **GCP**：OAuth クライアントを作成し、`redirect_uri` に `http://192.168.4.1/*` を登録
+- **デバイス側**：`hostapd` / `dnsmasq` で AP を構成、Flask サーバーを用意
+
+このフローで、非エンジニアのユーザーも QR を 2〜3 回スキャンするだけでセットアップが完結します。
+
+---
+
+## 今後の展開
+
+1. **UI/UX の洗練**：初見でわかる操作感の実現
+2. **外観デザインの改善**：インテリアとしての完成度を上げる
+3. **センサー精度の向上**：回転検出の安定化
+
+---
+
+## Summary
+
+Stacks は、タスク管理という日常的な課題に対して、物理的な存在感とデザインで向き合うプロダクトです。Raspberry Pi 5 上で動く Web アプリ、自作の回転入力機構、QR 中心のセットアップフローを組み合わせ、「忙しさを、美しく。」というコンセプトを形にしました。
