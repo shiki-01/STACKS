@@ -6,13 +6,32 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { physicsRotation, modeSwitchEnabled } from '$lib/physicsController';
+	import { physicsRotation, modeSwitchEnabled, pushRotation, pushClick } from '$lib/physicsController';
 	import PhysicsControls from '$lib/components/PhysicsControls.svelte';
 	import { untrack } from 'svelte';
 	import { get } from 'svelte/store';
+	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 	const VERSION = '1.0.0';
+
+	// ---- External rotation API (SSE) ----
+	onMount(() => {
+		if (!IS_PHYSICS) return;
+
+		const es = new EventSource('/api/rotation');
+
+		es.addEventListener('rotation', (e) => {
+			const { delta } = JSON.parse(e.data) as { delta: number };
+			pushRotation(delta);
+		});
+
+		es.addEventListener('click', () => {
+			pushClick();
+		});
+
+		return () => es.close();
+	});
 
 	let { children } = $props();
 
