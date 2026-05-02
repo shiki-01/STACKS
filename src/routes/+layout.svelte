@@ -13,7 +13,7 @@
 	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
-	const VERSION = '1.0.0';
+	const VERSION = '1.1.0';
 
 	// ---- External rotation API (SSE) ----
 	onMount(() => {
