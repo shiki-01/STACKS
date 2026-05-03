@@ -48,13 +48,13 @@
 		<div class="flex gap:2">
 			<button
 				onclick={install}
-				class="px:3 py:1.5 bg:blue-500 color:white r:lg font:sm font:bold border:none cursor:pointer ~bg:blue-600:hover"
+				class="px:3 py:1.5 bg:blue-500 color:white r:lg font:sm font:bold border:none ~bg:blue-600:hover"
 			>
 				追加
 			</button>
 			<button
 				onclick={dismiss}
-				class="px:3 py:1.5 bg:gray-100 color:gray-600 r:lg font:sm border:none cursor:pointer ~bg:gray-200:hover"
+				class="px:3 py:1.5 bg:gray-100 color:gray-600 r:lg font:sm border:none ~bg:gray-200:hover"
 			>
 				後で
 			</button>

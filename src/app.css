@@ -9,6 +9,7 @@
 :root,
 body {
   font-family: "Reddit Sans", "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+  user-select: none;
 }
 
 body:lang(ja) {

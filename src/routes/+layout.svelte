@@ -4,7 +4,7 @@
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
+	import { goto, beforeNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { physicsRotation, modeSwitchEnabled, pushRotation, pushClick } from '$lib/physicsController';
 	import PhysicsControls from '$lib/components/PhysicsControls.svelte';
@@ -13,7 +13,8 @@
 	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
-	const VERSION = '1.1.0';
+	const CURSOR_VISIBLE = import.meta.env.VITE_CURSOR_VISIBLE === 'true';
+	const VERSION = '1.2.0';
 
 	// ---- External rotation API (SSE) ----
 	onMount(() => {
@@ -62,6 +63,18 @@
 
 	let slideDir = $state(1); // 1: 左スワイプ(次へ), -1: 右スワイプ(前へ)
 
+	// ページ遷移前にスライド方向を自動設定
+	// サブページへの遷移は右から(1)、サブページから戻る場合は左から(-1)
+	beforeNavigate(({ to }) => {
+		if (!to) return;
+		const toPath = to.url.pathname;
+		const fromPath = page.url.pathname;
+		const toIsSub   = !modes.some(m => toPath   === m.href) && modes.some(m => toPath.startsWith(m.href + '/'));
+		const fromIsSub = !modes.some(m => fromPath === m.href) && modes.some(m => fromPath.startsWith(m.href + '/'));
+		if (!fromIsSub && toIsSub)   slideDir = 1;  // メイン → サブ: 右からスライドイン
+		if ( fromIsSub && !toIsSub)  slideDir = -1; // サブ → メイン: 左からスライドイン
+	});
+
 	let pointerStartX = 0;
 	let pointerStartY = 0;
 
@@ -76,11 +89,11 @@
 
 		if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;
 
-		// サブページ(/table/[id] など)にいる場合は親ページに戻る
+		// サブページ(/table/[id] など)にいる場合
 		const tabHref = modes[currentIndex]?.href;
 		if (tabHref && page.url.pathname !== tabHref) {
-			slideDir = -1;
-			goto(resolve(tabHref));
+			// 左→右スワイプ(dx < 0)のみ親ページへ戻る。右→左は何もしない
+			if (dx < 0) goto(resolve(tabHref));
 			return;
 		}
 
@@ -103,12 +116,14 @@
 	let modeSwitchBaseRotation = 0;
 	let modeSwitchBasePageIndex = 0;
 
-	// modeSwitchEnabled が true になったタイミングを捕捉してベースラインを更新
+	// modeSwitchEnabled が true のとき、ページ変化（スワイプ含む）に追従してベースラインを更新
+	// currentIndex をリアクティブに読むことで、スワイプ遷移後もベースラインがずれなくなる
 	$effect(() => {
 		if (!IS_PHYSICS || !$modeSwitchEnabled) return;
+		const idx = currentIndex;
 		untrack(() => {
 			modeSwitchBaseRotation = get(physicsRotation);
-			modeSwitchBasePageIndex = currentIndex >= 0 ? currentIndex : 0;
+			modeSwitchBasePageIndex = idx >= 0 ? idx : 0;
 		});
 	});
 
@@ -132,7 +147,7 @@
 
 <main
 	class="w:720px h:720px r:full flex ai:center jc:center flex-shrink:0"
-	style="touch-action: none"
+	style="touch-action: none; cursor: {CURSOR_VISIBLE ? 'default' : 'none'} !important;"
 	onpointerdown={onPointerDown}
 	onpointerup={onPointerUp}
 >

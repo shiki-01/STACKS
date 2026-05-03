@@ -174,7 +174,7 @@
 				{@const angle = i * CARD_ANGLE}
 				{@const active = i === currentIndex}
 				<div
-					class="backface abs top:0 left:0 w:stretch h:stretch cursor:pointer"
+					class="backface abs top:0 left:0 w:stretch h:stretch"
 					role="button"
 					tabindex={active ? 0 : -1}
 					style="transform: rotateX({-angle}deg) translateZ({CYLINDER_R}px);"

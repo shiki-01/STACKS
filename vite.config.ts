@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
 		plugins: [sveltekit(), ...(useHttps ? [basicSsl()] : []), masterCSS()],
 		server: {
 			host: true,
+			port: process.env.PORT ? Number(process.env.PORT) : undefined,
 			https: useHttps ? {} : undefined,
 			fs: {
 				allow: [

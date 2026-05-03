@@ -146,14 +146,15 @@
 	{/if}
 
 	<button
-		class="abs top:48 left:48 bg:none b:none color:#555 cursor:pointer p:4 flex ai:center transition:color|0.15s hover:color:#888"
+		class="abs top:200px left:150px bg:none b:none color:#555 px:6 py:4 flex ai:center gap:4 r:8 cursor:pointer transition:color|0.15s hover:color:#aaa"
 		class:phy-back-selected={IS_PHYSICS && selectedAction === 'back'}
-		onclick={() => goto(resolve('/table'))}
+		onclick={handleBack}
 		aria-label="一覧に戻る"
 	>
-		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+		<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
 			<polyline points="15 18 9 12 15 6" />
 		</svg>
+		<span style="font-size:0.75rem;letter-spacing:0.03em;">一覧</span>
 	</button>
 </div>
 

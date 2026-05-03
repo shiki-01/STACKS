@@ -98,12 +98,11 @@
 	.physics-controls {
 		position: fixed;
 		/* 720px サークルの真下 12px */
-		top: calc(50vh + 360px + 12px);
-		left: 50%;
-		transform: translateX(-50%);
+		top: 10px;
+		right: 10px;
 		display: flex;
 		align-items: center;
-		gap: 24px;
+		gap: 10px;
 		z-index: 200;
 		pointer-events: auto;
 	}
