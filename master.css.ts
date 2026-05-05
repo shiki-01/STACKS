@@ -3,8 +3,10 @@ import type { Config } from '@master/css';
 export default {
 	styles: {},
 	rules: {},
+	modeTrigger: 'class',
+	defaultMode: 'dark',
 	variables: {
-		// ── dark mode (default) ──────────────────────────────
+		// dark mode (default)
 		base_1: '#f7f7f7',   // primary text
 		base_2: '#797979',   // muted text / inactive icons
 		base_3: '#5c5c5c',   // tertiary text
@@ -20,17 +22,17 @@ export default {
 	},
 	modes: {
 		light: {
-			base_1: '#161616',   // primary text → dark
-			base_2: '#797979',   // muted text (same)
-			base_3: '#8a8a8a',   // tertiary text
-			base_4: '#a0a0a0',   // deeper inactive
-			base_5: '#f0f0f0',   // primary surface → light
-			base_6: '#ffffff',   // deep background → white
-			orange_1: '#d4762a', // slightly darker for light bg contrast
+			base_1: '#161616',
+			base_2: '#797979',
+			base_3: '#8a8a8a',
+			base_4: '#a0a0a0',
+			base_5: '#f0f0f0',
+			base_6: '#ffffff',
+			orange_1: '#d4762a',
 			orange_2: '#b85f1e',
-			blue_1: '#2a9fd8',   // slightly darker for light bg contrast
+			blue_1: '#2a9fd8',
 			blue_2: '#1a7daa',
-			red_1: '#c93232',    // slightly darker for light bg contrast
+			red_1: '#c93232',
 			red_2: '#d44840'
 		}
 	},
