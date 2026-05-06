@@ -27,6 +27,8 @@
 	let { children } = $props();
 
 	let slideDir = $state(1);
+	let navOpen = $state(false);
+	let mainEl: HTMLElement | undefined = $state();
 	let modeSwitchBaseRotation = 0;
 	let modeSwitchBasePageIndex = 0;
 	let pointerStartX = 0;
@@ -71,6 +73,10 @@
 
 	const isSubPage = $derived(showPhysicsControls && !isMainPage);
 
+	$effect(() => {
+		if (!isMainPage) navOpen = false;
+	});
+
 	beforeNavigate(({ to }) => {
 		if (!to) return;
 		const toPath = to.url.pathname;
@@ -105,6 +111,16 @@
 		const dy = pointerStartY - e.clientY;
 
 		if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;
+
+		// 左端からの右スワイプでナビを開く
+		const mainRect = mainEl?.getBoundingClientRect();
+		const relX = mainRect ? pointerStartX - mainRect.left : pointerStartX;
+		if (isMainPage && !navOpen && relX < 30 && dx < 0) {
+			navOpen = true;
+			return;
+		}
+
+		if (navOpen) return;
 
 		const tabHref = modes[currentIndex]?.href;
 		if (tabHref && page.url.pathname !== tabHref) {
@@ -148,6 +164,7 @@
 <main
 	class="w:720px h:720px r:full flex ai:center jc:center flex-shrink:0"
 	style="touch-action: none; cursor: {CURSOR_VISIBLE ? 'default' : 'none'} !important;"
+	bind:this={mainEl}
 	onpointerdown={onPointerDown}
 	onpointerup={onPointerUp}
 >
@@ -163,7 +180,14 @@
 			</div>
 		{/key}
 
-		{#if isMainPage}
+		{#if isMainPage && navOpen}
+			<div
+				role="button"
+				tabindex="0"
+				class="abs inset:0 z:15"
+				onpointerdown={(e) => { navOpen = false; e.stopPropagation(); }}
+				onpointerup={(e) => e.stopPropagation()}
+			></div>
 			<Nav />
 		{/if}
 

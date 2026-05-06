@@ -155,7 +155,7 @@
 </script>
 
 <div
-	class="rel w:full h:full flex flex:column ai:center jc:center bg:base-5 overflow:hidden"
+	class="rel w:full h:full flex flex:column ai:center jc:center bg:base-6 overflow:hidden"
 	tabindex="0"
 	role="button"
 	style="touch-action: none"
@@ -166,7 +166,7 @@
 	onpointercancel={onPointerCancel}
 	onkeydown={(e) => e.preventDefault()}
 >
-	<CircleClock />
+	<CircleClock />	
 
 	<div class="perspective w:360px h:300px flex ai:center jc:center">
 		<div bind:this={drum} class="w:stretch h:72px rel transform-style:preserve-3d">

@@ -39,7 +39,7 @@
 		{ cx: 56, cy: 88, r: 8, pair: colorPairs[0], angle: 70 }
 	];
 
-	const CONTAINER_R = 280;
+	const CONTAINER_R = 270;
 	const GRAVITY = 0.18;
 	const FRICTION = 0.985;
 	const RESTITUTION = 0.15;
@@ -259,8 +259,8 @@
 	});
 </script>
 
-<div class="abs inset:0 flex ai:center bg:base-5 jc:center">
-	<canvas bind:this={canvas} class="w:full h:full r:50% bg:base-6"></canvas>
+<div class="abs inset:0 flex ai:center bg:base-5 jc:center bg:base-6">
+	<canvas bind:this={canvas} class="w:full h:full r:50% bg:base-5"></canvas>
 
 	<CircleClock />
 
