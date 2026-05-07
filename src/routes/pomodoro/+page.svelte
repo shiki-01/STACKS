@@ -48,8 +48,7 @@
 				ease: EASE_OUT
 			});
 			gsap.from(pageEl, {
-				w: 720,
-				opacity: 0,
+				width: 720,
 				duration: 0.35,
 				ease: EASE_OUT
 			});

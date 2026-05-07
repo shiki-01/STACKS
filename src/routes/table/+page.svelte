@@ -275,7 +275,11 @@
 				duration: 0.6,
 				ease: EASE_OUT
 			});
-			gsap.from(tableContentEl, { scale: 1.06, opacity: 0, duration: 0.35, ease: EASE_OUT });
+			gsap.from(tableContentEl, {
+				scale: 1.06,
+				duration: 0.35,
+				ease: EASE_OUT
+			});
 			const cardEls = tableContentEl.querySelectorAll('.card-inner');
 			if (cardEls.length) {
 				gsap.from(cardEls, {
