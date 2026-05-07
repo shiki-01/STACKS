@@ -5,6 +5,7 @@
 	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor } from '$lib/localTasks';
 	import { get } from 'svelte/store';
 	import { physicsRotation, physicsClickCount } from '$lib/physicsController';
+	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 
@@ -84,9 +85,15 @@
 		else if (selectedAction === 'complete') handleComplete();
 		else if (selectedAction === 'delete') handleDelete();
 	});
+
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			window.document.body.className = 'bg:background';
+		}
+	});
 </script>
 
-<div class="rel w:100% h:100% flex flex:column ai:center jc:center px:48px box-sizing:border-box">
+<div class="rel w:100% h:100% bg:base-6 flex flex:column ai:center jc:center px:48px box-sizing:border-box">
 
 	<div class="abs top:52px left:50% translateX(-50%) pointer-events:none">
 		<span class="f:0.75rem color:#888 ls:0.04em white-space:nowrap">{dateStr} {timeStr}</span>

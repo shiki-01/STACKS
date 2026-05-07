@@ -41,7 +41,7 @@
 	];
 
 	const CONTAINER_R = 270;
-	const GRAVITY = 0.18;
+	const GRAVITY = 0.5;
 	const FRICTION = 0.985;
 	const RESTITUTION = 0.15;
 	const RESOLVE_ITERS = 4;

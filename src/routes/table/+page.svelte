@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { pendingTasks, deadlineColor } from '$lib/localTasks';
@@ -9,7 +9,10 @@
 	import { get } from 'svelte/store';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
+	const ITEM_DEG = 30;
 
+	let itemBaseRotation = 0;
+	let prevClickCount = get(physicsClickCount);
 	let drum = $state<HTMLDivElement | null>(null);
 	let currentIndex = $state(0);
 	let isAnimating = false;
@@ -18,11 +21,15 @@
 	let dragStartY = 0;
 	let dragStartRotation = 0;
 	let currentRotationX = 0;
+	let didDrag = false;
+	let pointerStartTaskId: string | null = null;
+	let scrollProgress = $state(0);
 
-	const CARD_ANGLE = 20;
-	const CYLINDER_R = 240;
-	const WHEEL_PX_PER_ITEM = 120;
+	const CARD_ANGLE = 22;
+	const CYLINDER_R = 260;
+	const WHEEL_PX_PER_ITEM = 1000;
 	const DRAG_ROTATION_FACTOR = 0.15;
+	const DRAG_START_PX = 6;
 
 	function clampIndex(index: number) {
 		const tasks = $pendingTasks;
@@ -39,6 +46,7 @@
 		currentRotationX = clampRotation(rotationX);
 		currentIndex = clampIndex(Math.round(currentRotationX / CARD_ANGLE));
 		gsap.set(drum, { rotationX: currentRotationX });
+		updateScrollProgress();
 	}
 
 	function rotateTo(index: number) {
@@ -47,14 +55,24 @@
 		const clampedIndex = clampIndex(index);
 		currentIndex = clampedIndex;
 		currentRotationX = clampedIndex * CARD_ANGLE;
+		updateScrollProgress();
 		gsap.to(drum, {
 			rotationX: currentRotationX,
-			duration: 0.55,
+			duration: 0.3,
 			ease: 'power3.out',
 			onComplete: () => {
 				isAnimating = false;
 			}
 		});
+	}
+
+	function updateScrollProgress() {
+		const maxRotation = Math.max(0, ($pendingTasks.length - 1) * CARD_ANGLE);
+		if (maxRotation <= 0) {
+			scrollProgress = 0;
+			return;
+		}
+		scrollProgress = Math.max(0, Math.min(currentRotationX / maxRotation, 1));
 	}
 
 	function onWheel(e: WheelEvent) {
@@ -69,46 +87,55 @@
 		activePointerId = e.pointerId;
 		dragStartY = e.clientY;
 		dragStartRotation = currentRotationX;
+		didDrag = false;
+		pointerStartTaskId =
+			e.target instanceof Element
+				? (e.target.closest<HTMLElement>('[data-task-id]')?.dataset.taskId ?? null)
+				: null;
 		isAnimating = false;
 		gsap.killTweensOf(drum);
 		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 	}
+
 	function onPointerMove(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
 		const delta = dragStartY - e.clientY;
+		if (!didDrag && Math.abs(delta) < DRAG_START_PX) return;
+		didDrag = true;
 		setRotation(dragStartRotation + delta * DRAG_ROTATION_FACTOR);
 	}
+
 	function onPointerUp(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
 		isDragging = false;
 		activePointerId = null;
 		(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-		rotateTo(currentIndex);
+		if (!didDrag && pointerStartTaskId) {
+			goto(resolve('/table/[id]', { id: pointerStartTaskId }));
+		} else {
+			rotateTo(currentIndex);
+		}
+		didDrag = false;
+		pointerStartTaskId = null;
 	}
+
 	function onPointerCancel(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
 		isDragging = false;
 		activePointerId = null;
+		didDrag = false;
+		pointerStartTaskId = null;
 		rotateTo(currentIndex);
 	}
 
-	onMount(() => {
-		if (drum) {
-			currentRotationX = 0;
-			gsap.set(drum, { rotationX: 0 });
-		}
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
-	});
-
-	// ---- Physics: ノブでリスト操作 (modeSwitchEnabled=false 時) ----
-	/** ノブ 30度 ごとに 1 アイテム移動 (感度調整) */
-	const ITEM_DEG = 30;
-
-	/** modeSwitchEnabled が false になった瞬間の回転ベースライン */
-	import { untrack } from 'svelte';
-	let itemBaseRotation = 0;
+	function dueDateLabel(dueDate: Date | null): string {
+		if (!dueDate) return '期限なし';
+		const days = (dueDate.getTime() - Date.now()) / 86_400_000;
+		if (days < 0) return '期限切れ';
+		if (days < 1) return '今日';
+		if (days < 2) return '明日';
+		return `${Math.ceil(days)}日後`;
+	}
 
 	$effect(() => {
 		if (!IS_PHYSICS || $modeSwitchEnabled) return;
@@ -130,7 +157,6 @@
 	});
 
 	/** ボタンクリック → 選択中アイテムに遷移 */
-	let prevClickCount = get(physicsClickCount);
 	$effect(() => {
 		const count = $physicsClickCount;
 		if (!IS_PHYSICS || $modeSwitchEnabled) {
@@ -144,14 +170,16 @@
 		if (task) goto(resolve('/table/[id]', { id: task.id }));
 	});
 
-	function dueDateLabel(dueDate: Date | null): string {
-		if (!dueDate) return '期限なし';
-		const days = (dueDate.getTime() - Date.now()) / 86_400_000;
-		if (days < 0) return '期限切れ';
-		if (days < 1) return '今日';
-		if (days < 2) return '明日';
-		return `${Math.ceil(days)}日後`;
-	}
+	onMount(() => {
+		if (drum) {
+			currentRotationX = 0;
+			gsap.set(drum, { rotationX: 0 });
+			updateScrollProgress();
+		}
+		if (typeof window !== 'undefined') {
+			window.document.body.className = 'bg:background';
+		}
+	});
 </script>
 
 <div
@@ -166,25 +194,67 @@
 	onpointercancel={onPointerCancel}
 	onkeydown={(e) => e.preventDefault()}
 >
-	<CircleClock />	
+	<CircleClock />
 
-	<div class="perspective w:360px h:300px flex ai:center jc:center">
-		<div bind:this={drum} class="w:stretch h:72px rel transform-style:preserve-3d">
+	<div class="abs z:999 w:684px square top:50% left:50% translate(-50%,-50%) pointer-events:none">
+		<div class="rel w:full h:full">
+			<svg
+				class="abs z:0 top:50% left:50% translate(-50%,-50%)"
+				width="684"
+				height="684"
+				viewBox="0 0 684 684"
+			>
+				<path
+					class="stroke:base-4"
+					d="M 642 266 A 300 300 0 0 1 642 433"
+					fill="none"
+					stroke-linecap="round"
+					stroke-width="12"
+				/>
+			</svg>
+			<svg
+				class="abs z:1 top:50% left:50% translate(-50%,-50%)"
+				width="684"
+				height="684"
+				viewBox="0 0 684 684"
+			>
+				<path
+					class="stroke:base-1 ~stroke-dashoffset|200ms"
+					d="M 642 266 A 300 300 0 0 1 642 433"
+					fill="none"
+					stroke-linecap="round"
+					stroke-width="12"
+					stroke-dasharray="25 148"
+					stroke-dashoffset={-scrollProgress * 148}
+				/>
+			</svg>
+		</div>
+	</div>
+
+	<div class="perspective w:300px h:300px flex ai:center jc:center">
+		<div bind:this={drum} class="w:stretch h:90px rel transform-style:preserve-3d">
 			{#each $pendingTasks as task, i (task.id)}
 				{@const angle = i * CARD_ANGLE}
 				{@const active = i === currentIndex}
 				<div
 					class="backface abs top:0 left:0 w:stretch h:stretch pointer-events:auto"
+					data-task-id={task.id}
 					role="button"
 					tabindex={active ? 0 : -1}
 					style="transform: rotateX({-angle}deg) translateZ({CYLINDER_R}px);"
-					onclick={() => goto(resolve('/table/[id]', { id: task.id }))}
 					onkeydown={(e) => e.preventDefault()}
 				>
-					<div class="card-inner w:full h:full bg:#1e1e1e b:1px|solid|#2a2a2a r:12px p:0|20px flex ai:center jc:space-between gap:12px box-sizing:border-box" class:active>
-						<span class="card-title f:0.9rem fg:#cfcfcf font-weight:500 white-space:nowrap overflow:hidden text-overflow:ellipsis flex:1" class:active>{task.title}</span>
+					<div
+						class="card-inner w:full h:full bg:#1e1e1e r:12px p:0|20px flex flex:column ai:start jc:center gap:7px box-sizing:border-box"
+						class:active
+					>
+						<span
+							class="card-title f:1rem line-h:1 fg:#cfcfcf font-weight:500 white-space:nowrap overflow:hidden text-overflow:ellipsis"
+							class:active>{task.title}</span
+						>
 						<div class="flex ai:center gap:5px flex-shrink:0">
-							<span class="w:6px h:6px r:full" style="background:{deadlineColor(task.dueDate)}"></span>
+							<span class="w:6px h:6px r:full" style="background:{deadlineColor(task.dueDate)}"
+							></span>
 							<span class="f:0.7rem font-weight:500" style="color:{deadlineColor(task.dueDate)}"
 								>{dueDateLabel(task.dueDate)}</span
 							>
