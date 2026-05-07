@@ -25,13 +25,13 @@
 
 	function handleComplete() {
 		if (!task) return;
-		completeLocalTask(task.id!);
+		completeLocalTask(task.id);
 		goto(resolve('/table'));
 	}
 
 	function handleDelete() {
 		if (!task) return;
-		removeLocalTask(task.id!);
+		removeLocalTask(task.id);
 		goto(resolve('/table'));
 	}
 
