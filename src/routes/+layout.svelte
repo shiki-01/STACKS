@@ -3,6 +3,7 @@
 	import '../app.css';
 	import { pageIn, pageOut, type TransitionParams } from '$lib/transitions';
 	import { pageTransition, skipAnimationOnce } from '$lib/transitionStore';
+	import { EASE_OUT, EASE_IN, EASE_STANDARD } from '$lib/easings';
 	import { page } from '$app/state';
 	import { goto, beforeNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -87,26 +88,25 @@
 
 	const routeAnimations: Partial<Record<string, RouteAnim>> = {
 		'/pomodoro': {
-			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 400, ease: 'power2.out' }),
-			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: 'power2.in' })
+			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 400, ease: EASE_OUT }),
+			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: EASE_IN })
 		},
 		'/clock': {
-			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 380, ease: 'power3.out' }),
-			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: 'power3.in' })
+			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 380, ease: EASE_OUT }),
+			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: EASE_IN })
 		},
 		'/stack': {
-			// バブル物理ページ：イン時に少しオーバーシュート
-			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 450, ease: 'back.out(0.8)' }),
-			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: 'power3.in' })
+			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 450, ease: EASE_STANDARD }),
+			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: EASE_IN })
 		},
 		'/settings': {
-			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 380, ease: 'power2.out' }),
-			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: 'power2.in' })
+			in:  (axis, dir) => ({ x: axis === 'x' ? dir * 560 : 0, y: axis === 'y' ? dir * 560 : 0, duration: 380, ease: EASE_OUT }),
+			out: (axis, dir) => ({ x: axis === 'x' ? -dir * 560 : 0, y: axis === 'y' ? -dir * 560 : 0, duration: 300, ease: EASE_IN })
 		},
 		// /table は常に下から上にイン、上から下にアウト（軸に関係なく）
 		'/table': {
-			in:  (_axis, dir) => ({ y: dir * 720, duration: 450, ease: 'power3.out' }),
-			out: (_axis, dir) => ({ y: dir * -720, duration: 380, ease: 'power3.in' })
+			in:  (_axis, dir) => ({ y: dir * 720, duration: 450, ease: EASE_OUT }),
+			out: (_axis, dir) => ({ y: dir * -720, duration: 380, ease: EASE_IN })
 		}
 	};
 	// ─────────────────────────────────────────────────────────────────────────
@@ -135,7 +135,8 @@
 	});
 
 	const customElementPairs = new Set([
-		'/clock→/table'
+		'/clock→/table',
+		'/table→/clock'
 	]);
 
 	beforeNavigate(({ to, cancel }) => {

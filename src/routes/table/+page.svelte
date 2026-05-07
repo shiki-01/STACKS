@@ -7,7 +7,8 @@
 	import CircleClock from '$lib/components/CircleClock.svelte';
 	import { physicsRotation, physicsClickCount, modeSwitchEnabled } from '$lib/physicsController';
 	import { get } from 'svelte/store';
-	import { pageTransition } from '$lib/transitionStore';
+	import { pageTransition, skipAnimationOnce } from '$lib/transitionStore';
+	import { EASE_OUT, EASE_IN } from '$lib/easings';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 	const ITEM_DEG = 30;
@@ -186,6 +187,57 @@
 		if (task) goto(resolve('/table/[id]', { id: task.id }));
 	});
 
+	/** スクロール位置に応じてタスクカウントをフェード */
+	$effect(() => {
+		if (!taskCountEl) return;
+		if (currentIndex > 0) {
+			gsap.to(taskCountEl, { opacity: 0, duration: 0.1, ease: EASE_IN });
+		} else {
+			gsap.to(taskCountEl, { opacity: 1, duration: 0.3, ease: EASE_OUT });
+		}
+	});
+
+	let exitTl: gsap.core.Timeline | undefined;
+
+	$effect(() => {
+		const t = $pageTransition;
+		if (!t || t.from !== '/table' || t.to !== '/clock') return;
+		if (!tableContentEl) return;
+
+		exitTl?.kill();
+		const tl = gsap.timeline({
+			onComplete: () => {
+				skipAnimationOnce.set(true);
+				goto(resolve('/clock'));
+			}
+		});
+		exitTl = tl;
+
+		if (taskCountEl) {
+			tl.to(taskCountEl, {
+				y: 200,
+				scale: 0.9,
+				duration: 0.5,
+				ease: EASE_IN
+			})
+		}
+
+		const cardEls = tableContentEl.querySelectorAll('.card-inner');
+		if (cardEls.length) {
+			tl.to(cardEls, {
+				opacity: 0,
+				y: 18,
+				duration: 0.2,
+				ease: EASE_IN,
+				stagger: { amount: 0.15, from: 'center' }
+			}, 0);
+		}
+
+		tl.to(tableContentEl, { scale: 1.14, duration: 0.3, ease: EASE_IN }, 0);
+
+		return () => { exitTl?.kill(); };
+	});
+
 	onMount(() => {
 		if (drum) {
 			currentRotationX = 0;
@@ -196,21 +248,19 @@
 			window.document.body.className = 'bg:background';
 		}
 
-		// /clock → /table 専用：手前から奥へ飛び込むエントリーアニメーション（CircleClock は除外）
 		const t = get(pageTransition);
 		if (t?.from === '/clock' && tableContentEl && taskCountEl) {
 			gsap.from(taskCountEl, {
 				y: 200,
 				scale: 0.9,
-				duration: 0.4,
-				ease: 'power3.out',
-			})
+				duration: 0.6,
+				ease: EASE_OUT
+			});
 
-			// カード群：少し手前（scale 大）から奥（scale 1）へ収束
 			gsap.from(tableContentEl, {
 				scale: 1.14,
-				duration: 0.55,
-				ease: 'power3.out',
+				duration: 0.4,
+				ease: EASE_OUT,
 				delay: 0.06
 			});
 
@@ -220,8 +270,8 @@
 				gsap.from(cardEls, {
 					opacity: 0,
 					y: 18,
-					duration: 0.45,
-					ease: 'power2.out',
+					duration: 0.4,
+					ease: EASE_OUT,
 					stagger: { amount: 0.2, from: 'center' },
 					delay: 0.1
 				});

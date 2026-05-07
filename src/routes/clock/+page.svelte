@@ -6,12 +6,15 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { pageTransition, skipAnimationOnce } from '$lib/transitionStore';
+	import { EASE_OUT, EASE_IN } from '$lib/easings';
+	import { get } from 'svelte/store';
 
 	let now = $state(new Date());
 	let frameId: number | undefined;
 
 	let clockOuter: HTMLDivElement | undefined = $state();
 	let numsWrap: HTMLDivElement | undefined = $state();
+	let handsWrapEl: HTMLDivElement | undefined = $state();
 	let clockWrap: HTMLDivElement | undefined = $state();
 	let centerCircleEl: HTMLDivElement | undefined = $state();
 	let taskCountEl: HTMLDivElement | undefined = $state();
@@ -25,6 +28,18 @@
 			frameId = requestAnimationFrame(tick);
 		};
 		frameId = requestAnimationFrame(tick);
+
+		// /table → /clock エントリーアニメーション（clock→table の逆）
+		const t = get(pageTransition);
+		if (t?.from === '/table' && clockOuter) {
+			const tl = gsap.timeline();
+			if (numsWrap) tl.from(numsWrap, { scale: 2, duration: 0.4, ease: EASE_OUT }, 0);
+			if (handsWrapEl) tl.from(handsWrapEl, { scale: 1.6, duration: 0.3, ease: EASE_OUT }, 0);
+			if (centerCircleEl) tl.from(centerCircleEl, { width: 720, duration: 0.4, ease: EASE_OUT }, 0);
+			if (clockWrap) tl.from(clockWrap, { opacity: 0, duration: 0.4, ease: EASE_OUT }, 0);
+			if (taskCountEl) tl.from(taskCountEl, { scale: 0.9, y: -20, duration: 0.4, ease: EASE_OUT }, 0);
+		}
+
 		return () => {
 			if (frameId !== undefined) cancelAnimationFrame(frameId);
 		};
@@ -35,9 +50,6 @@
 	$effect(() => {
 		const t = $pageTransition;
 		if (!t || t.from !== '/clock' || t.to !== '/table') return;
-		if (!clockOuter) return;
-
-		const handEls = clockOuter.querySelectorAll('.hand');
 
 		exitTl?.kill();
 		const tl = gsap.timeline({
@@ -52,56 +64,23 @@
 			tl.to(numsWrap, {
 				scale: 2,
 				duration: 0.4,
-				ease: 'power2.in',
+				ease: EASE_IN,
 				stagger: { amount: 0.14, from: 'random' }
 			});
 		}
 
-		tl.to(
-			handEls,
-			{
-				scale: 1.6,
-				duration: 0.3,
-				ease: 'power3.in'
-			},
-			0
-		);
+		if (handsWrapEl) tl.to(handsWrapEl, { scale: 1.8, duration: 0.3, ease: EASE_IN }, 0);
 
 		if (centerCircleEl) {
-			tl.to(
-				centerCircleEl,
-				{
-					width: 720,
-					duration: 0.4,
-					ease: 'power3.in'
-				},
-				0
-			);
+			tl.to(centerCircleEl, { width: 720, duration: 0.4, ease: EASE_IN }, 0);
 		}
 
 		if (clockWrap) {
-			tl.to(
-				clockWrap,
-				{
-					opacity: 0,
-					duration: 0.4,
-					ease: 'power3.in'
-				},
-				0
-			);
+			tl.to(clockWrap, { opacity: 0, duration: 0.4, ease: EASE_IN }, 0);
 		}
 
 		if (taskCountEl) {
-			tl.to(
-				taskCountEl,
-				{
-					scale: 0.9,
-					y: -20,
-					duration: 0.4,
-					ease: 'power3.in'
-				},
-				0
-			);
+			tl.to(taskCountEl, { scale: 0.9, y: -20, duration: 0.4, ease: EASE_IN }, 0);
 		}
 
 		return () => {
@@ -140,18 +119,20 @@
 		{/each}
 	</div>
 
-	<div
-		class="hand z:3 w:8px h:260px bg:#F1F1F1::before"
-		style="transform:translateX(-50%) rotate({hourDeg}deg);"
-	></div>
-	<div
-		class="hand z:2 w:8px h:320px bg:#878787::before"
-		style="transform:translateX(-50%) rotate({minuteDeg}deg);"
-	></div>
-	<div
-		class="hand z:1 w:4px h:320px bg:#4E4E4E::before"
-		style="transform:translateX(-50%) rotate({secondDeg}deg);"
-	></div>
+	<div bind:this={handsWrapEl} class="abs inset:0">
+		<div
+			class="hand z:3 w:8px h:260px bg:#F1F1F1::before"
+			style="transform:translateX(-50%) rotate({hourDeg}deg);"
+		></div>
+		<div
+			class="hand z:2 w:8px h:320px bg:#878787::before"
+			style="transform:translateX(-50%) rotate({minuteDeg}deg);"
+		></div>
+		<div
+			class="hand z:1 w:4px h:320px bg:#4E4E4E::before"
+			style="transform:translateX(-50%) rotate({secondDeg}deg);"
+		></div>
+	</div>
 
 	<div
 		class="abs top:50% left:50% translate(-50%,-50%) w:368px square r:50% bg:base-6 z:5 flex flex:column ai:center jc:center gap:8px"
