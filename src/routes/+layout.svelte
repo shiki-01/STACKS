@@ -21,7 +21,7 @@
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 	const CURSOR_VISIBLE = import.meta.env.VITE_CURSOR_VISIBLE === 'true';
-	const VERSION = '1.3.1';
+	const VERSION = '1.4.0';
 
 	const DEGREES_PER_PAGE = 72;
 
