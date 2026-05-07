@@ -30,9 +30,6 @@
 	let taskCountEl: HTMLDivElement | undefined = $state();
 
 	onMount(() => {
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
 		// /table → /pomodoro エントリーアニメーション
 		const t = get(pageTransition);
 		const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;

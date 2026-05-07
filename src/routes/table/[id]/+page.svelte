@@ -5,7 +5,6 @@
 	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor, dueDateLabel } from '$lib/localTasks';
 	import { get } from 'svelte/store';
 	import { physicsRotation, physicsClickCount } from '$lib/physicsController';
-	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 
@@ -77,11 +76,6 @@
 		else if (selectedAction === 'delete') handleDelete();
 	});
 
-	onMount(() => {
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
-	});
 </script>
 
 <div class="rel w:100% h:100% bg:base-6 flex flex:column ai:center jc:center px:48px box-sizing:border-box">

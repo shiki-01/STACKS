@@ -254,9 +254,6 @@
 			gsap.set(drum, { rotationX: 0 });
 			updateScrollProgress();
 		}
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
 
 		const t = get(pageTransition);
 		if (t?.from && tableContentEl && taskCountEl) {

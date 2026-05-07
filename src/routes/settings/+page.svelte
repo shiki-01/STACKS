@@ -10,9 +10,6 @@
 	let pageEl: HTMLDivElement | undefined = $state();
 
 	onMount(() => {
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
 		// /table → /settings エントリーアニメーション
 		const t = get(pageTransition);
 		if (t?.from === '/table' && pageEl) {

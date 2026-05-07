@@ -117,9 +117,6 @@
 
 	onMount(() => {
 		if (!canvas) return;
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
 		// /table → /stack エントリーアニメーション
 		const transition = get(pageTransition);
 		const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;
