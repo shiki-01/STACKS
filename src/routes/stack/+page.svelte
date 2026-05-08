@@ -14,10 +14,18 @@
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 
 	const colorPairs: [string, string][] = [
-		['#D94F45', '#B83D34'],
-		['#E07A3A', '#C06828'],
-		['#4BBFB5', '#36A89E']
+		['#D94F45', '#B83D34'], // red   (large / close deadline)
+		['#E07A3A', '#C06828'], // orange (medium)
+		['#4BBFB5', '#36A89E']  // teal  (small / far deadline)
 	];
+
+	function colorPairForDate(dueDate: Date | null): [string, string] {
+		if (!dueDate) return colorPairs[2];
+		const d = (dueDate.getTime() - Date.now()) / 86_400_000;
+		if (d < 1) return colorPairs[0];
+		if (d < 7) return colorPairs[1];
+		return colorPairs[2];
+	}
 
 	type StaticBubble = {
 		cx: number;
@@ -66,12 +74,16 @@
 	let canvas: HTMLCanvasElement | null = null;
 	let pageEl: HTMLDivElement | undefined = $state();
 	let taskCountEl: HTMLDivElement | undefined = $state();
+	let circleClockEl: HTMLDivElement | undefined = $state();
 	let canvasWrap: HTMLDivElement | undefined = $state();
 	let bubbles: Bubble[] = [];
 	let tickerCallback: (() => void) | null = null;
 
+	let exitTl: gsap.core.Timeline | undefined;
+	let frameId: number | undefined;
+
 	/** ハムスターホイール: 前フレームの回転値を記録してΔを計算 */
-	let prevPhysicsRotation = 0;
+	let prevPhysicsRotation = get(physicsRotation);
 	/** 接線力の倍率 (小さいほど回転の影響が小さい) */
 	const HAMSTER_FACTOR = 25;
 
@@ -103,23 +115,64 @@
 	$effect(() => {
 		const t = $pageTransition;
 		if (!t || t.from !== '/stack') return;
+		const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;
+		const circleClockNode = circleClockEl?.firstElementChild as HTMLElement | null;
 		if (t.to !== '/clock' && t.to !== '/pomodoro' && t.to !== '/settings') return;
 
 		const dest = t.to;
-		// TODO: 個別エレメントのアニメーションをここに記述
-		// 完了後に以下で遷移:
-		skipAnimationOnce.set(true);
-		goto(resolve(dest));
+		exitTl?.kill();
+		const tl = gsap.timeline({
+			onComplete: () => {
+				skipAnimationOnce.set(true);
+				goto(resolve(dest));
+			}
+		});
+		exitTl = tl;
+
+		if (dest === '/clock') {
+			tl.to(
+				circleClockNode,
+				{
+					opacity: 0,
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+			tl.to(
+				taskCountNode,
+				{
+					transform: 'translate(-50%,-100px) scale(1.2)',
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+		} else if (dest === '/pomodoro') {
+			tl.to(
+				taskCountNode,
+				{
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+		}
 
 		return () => {
-			if (pageEl) gsap.killTweensOf(pageEl);
+			exitTl?.kill();
 		};
 	});
 
 	onMount(() => {
+		const tick = () => {
+			frameId = requestAnimationFrame(tick);
+		};
+		frameId = requestAnimationFrame(tick);
 		if (!canvas) return;
 		const transition = get(pageTransition);
 		const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;
+		const circleClockNode = circleClockEl?.firstElementChild as HTMLElement | null;
 
 		if (transition?.from === '/table' && pageEl && taskCountNode && canvas && canvasWrap) {
 			// /table → /stack エントリーアニメーション
@@ -127,9 +180,50 @@
 			gsap.from(canvas, { scale: 1.2, duration: 0.3, ease: EASE_OUT });
 			gsap.from(taskCountNode, { y: -400, duration: 0.3, ease: EASE_OUT });
 			gsap.from(pageEl, { scale: 1, duration: 0.35, ease: EASE_OUT });
-		} else if (transition?.from === '/clock' || transition?.from === '/pomodoro' || transition?.from === '/settings') {
-			// 水平遷移 → /stack エントリーアニメーション
-			// TODO: 個別エレメントのアニメーションをここに記述
+		} else if (transition?.from === '/pomodoro') {
+			const tl = gsap.timeline();
+			if (canvasWrap) {
+				tl.from(
+					canvasWrap,
+					{
+						transform: 'translate(-50%,0)',
+						duration: 0.4,
+						ease: EASE_OUT
+					},
+					0
+				);
+			}
+		} else if (transition?.from === '/clock') {
+			const tl = gsap.timeline();
+			tl.from(
+				circleClockNode,
+				{
+					opacity: 0,
+					duration: 0.4,
+					ease: EASE_OUT
+				},
+				0
+			);
+			tl.from(
+				taskCountNode,
+				{
+					transform: 'translate(-50%,-130px)',
+					duration: 0.4,
+					ease: EASE_OUT
+				},
+				0
+			);
+			if (canvasWrap) {
+				tl.from(
+					canvasWrap,
+					{
+						transform: 'translate(50%,0)',
+						duration: 0.4,
+						ease: EASE_OUT
+					},
+					0
+				);
+			}
 		}
 
 		const tasks = get(pendingTasks);
@@ -156,9 +250,9 @@
 
 		bubbles = tasks.map((task, i) => {
 			const sb = pickStatic(i);
-
 			const x = (sb.cx - 50) * scale;
 			const y = (sb.cy - 50) * scale;
+			const pair = colorPairForDate(task.dueDate);
 
 			return {
 				x,
@@ -167,8 +261,8 @@
 				vy: (Math.random() - 0.5) * 2,
 				r: bubbleRadius(task.dueDate),
 				angle: sb.angle,
-				colorA: sb.pair[0],
-				colorB: sb.pair[1],
+				colorA: pair[0],
+				colorB: pair[1],
 				label: task.title.slice(0, 5)
 			};
 		});
@@ -293,7 +387,6 @@
 				const y = b.y + CY;
 
 				drawHalfBubble(ctx, x, y, b.r, b.angle, b.colorA, b.colorB);
-
 			}
 		}
 
@@ -305,6 +398,7 @@
 
 		return () => {
 			if (tickerCallback) gsap.ticker.remove(tickerCallback);
+			if (frameId !== undefined) cancelAnimationFrame(frameId);
 		};
 	});
 </script>
@@ -317,7 +411,9 @@
 		></canvas>
 	</div>
 
-	<CircleClock />
+	<div bind:this={circleClockEl}>
+		<CircleClock />
+	</div>
 
 	<div bind:this={taskCountEl}>
 		<TaskCount length={$pendingTasks.length} isChangeColor={false} />
