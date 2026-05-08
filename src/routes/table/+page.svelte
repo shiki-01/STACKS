@@ -579,13 +579,11 @@
 
 	.swipe-bg-right {
 		opacity: 0;
-		background: linear-gradient(90deg, #1a4d2a 0%, #2d7a42 100%);
 		border-radius: 12px;
 	}
 
 	.swipe-bg-left {
 		opacity: 0;
-		background: linear-gradient(270deg, #4d1a1a 0%, #7a2d2d 100%);
 		border-radius: 12px;
 	}
 </style>

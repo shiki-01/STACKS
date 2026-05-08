@@ -86,7 +86,7 @@
 		try {
 			const parsed = JSON.parse(jsonText);
 			if (!Array.isArray(parsed)) throw new Error('配列が必要です');
-			const tasks: LocalTask[] = parsed.map((t: any) => ({
+			const tasks: LocalTask[] = parsed.map((t) => ({
 				...t,
 				dueDate: t.dueDate ? new Date(t.dueDate) : null,
 				createdAt: new Date(t.createdAt),
@@ -210,7 +210,7 @@
 				</div>
 
 				<div class="flex gap:8px">
-					{#each presets as preset}
+					{#each presets as preset, i (i)}
 						<button
 							class="f:0.75rem font-weight:600 fg:base-2 cursor:pointer px:12px py:6px r:99px"
 							style="background: #2a2a2a; border: 1px solid #3a3a3a;"
