@@ -200,7 +200,6 @@
 		exitTl?.kill();
 		const tl = gsap.timeline({
 			onComplete: () => {
-				console.log('complete')
 				skipAnimationOnce.set(true);
 				if (toPath === '/clock') {
 					goto(resolve('/clock'));

@@ -7,8 +7,8 @@
 
 	const angle = {
 		clock: 39.5,
-		pomodoro: 14,
-		stack: -14,
+		stack: 14,
+		pomodoro: -14,
 		settings: -39.5
 	} as const;
 
@@ -37,7 +37,11 @@
 	>
 		<div class="w:100% h:100% flex rel flex:column ai:center jc:center">
 			<svg
-				class={'w:' + BG.WIDTH + ' h:' + BG.HEIGHT + ' flex abs top:50% left:0 translateY(-50%) z:0'}
+				class={'w:' +
+					BG.WIDTH +
+					' h:' +
+					BG.HEIGHT +
+					' flex abs top:50% left:0 translateY(-50%) z:0'}
 				width={BG.WIDTH}
 				height={BG.HEIGHT}
 				viewBox="0 0 205.7 516.45"
@@ -93,29 +97,6 @@
 				</button>
 				<button
 					class="nav-btn translate(28px,-22px)"
-					aria-label="pomodoro"
-					aria-current={isActive('pomodoro') ? 'page' : undefined}
-					onclick={() => goto(resolve('/pomodoro'))}
-				>
-					<span class="icon-wrap" class:active={isActive('/pomodoro')}>
-						<svg viewBox="0 0 104 104">
-							<path
-								d="M64.9411 72L39.0588 72M64.9411 72L64.9411 62.9412C64.9411 55.794 59.1472 50 51.9999 50C44.8527 50 39.0588 55.794 39.0588 62.9412L39.0588 72M64.9411 72L71.9999 72M39.0588 72L31.9999 72"
-								class="stroke:{isActive('/pomodoro') ? 'white' : 'base-2'}"
-								fill="none"
-								stroke-width="6"
-							/>
-							<path
-								d="M39.0588 28L64.9411 28M39.0588 28L39.0588 37.0588C39.0588 44.206 44.8527 50 51.9999 50C59.1471 50 64.9411 44.206 64.9411 37.0588V28M39.0588 28H31.9999M64.9411 28H71.9999"
-								class="stroke:{isActive('/pomodoro') ? 'white' : 'base-2'}"
-								fill="none"
-								stroke-width="6"
-							/>
-						</svg>
-					</span>
-				</button>
-				<button
-					class="nav-btn translate(28px,22px)"
 					aria-label="stack"
 					aria-current={isActive('stack') ? 'page' : undefined}
 					onclick={() => goto(resolve('/stack'))}
@@ -145,6 +126,29 @@
 								cy="65.4244"
 								r="4.63636"
 								class="fill:{isActive('/stack') ? 'white' : 'base-2'}"
+							/>
+						</svg>
+					</span>
+				</button>
+				<button
+					class="nav-btn translate(28px,22px)"
+					aria-label="pomodoro"
+					aria-current={isActive('pomodoro') ? 'page' : undefined}
+					onclick={() => goto(resolve('/pomodoro'))}
+				>
+					<span class="icon-wrap" class:active={isActive('/pomodoro')}>
+						<svg viewBox="0 0 104 104">
+							<path
+								d="M64.9411 72L39.0588 72M64.9411 72L64.9411 62.9412C64.9411 55.794 59.1472 50 51.9999 50C44.8527 50 39.0588 55.794 39.0588 62.9412L39.0588 72M64.9411 72L71.9999 72M39.0588 72L31.9999 72"
+								class="stroke:{isActive('/pomodoro') ? 'white' : 'base-2'}"
+								fill="none"
+								stroke-width="6"
+							/>
+							<path
+								d="M39.0588 28L64.9411 28M39.0588 28L39.0588 37.0588C39.0588 44.206 44.8527 50 51.9999 50C59.1471 50 64.9411 44.206 64.9411 37.0588V28M39.0588 28H31.9999M64.9411 28H71.9999"
+								class="stroke:{isActive('/pomodoro') ? 'white' : 'base-2'}"
+								fill="none"
+								stroke-width="6"
 							/>
 						</svg>
 					</span>

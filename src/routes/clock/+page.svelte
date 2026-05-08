@@ -37,13 +37,14 @@
 			if (clockWrap) tl.from(clockWrap, { opacity: 0, duration: 0.4, ease: EASE_OUT }, 0);
 			if (taskCountEl)
 				tl.from(taskCountEl, { scale: 0.9, y: -20, duration: 0.4, ease: EASE_OUT }, 0);
-		} else if (t?.from === '/pomodoro' || t?.from === '/stack' || t?.from === '/settings') {
+		} else if (t?.from === '/pomodoro' || t?.from === '/stack') {
 			const tl = gsap.timeline();
+			const lr = t?.from === '/pomodoro';
 			if (numsWrap) {
 				tl.from(
 					numsWrap,
 					{
-						transform: 'translateX(-50%)',
+						transform: `translate(${lr ? '50' : '-50'}%)`,
 						duration: 0.4,
 						ease: EASE_OUT
 					},
@@ -54,7 +55,7 @@
 				tl.from(
 					handsWrapEl,
 					{
-						transform: 'translateX(-50%)',
+						transform: `translate(${lr ? '50' : '-50'}%)`,
 						duration: 0.4,
 						ease: EASE_OUT
 					},
@@ -65,7 +66,7 @@
 				tl.from(
 					clockWrap,
 					{
-						transform: 'translateX(-50%)',
+						transform: `translate(${lr ? '50' : '-50'}%)`,
 						duration: 0.4,
 						ease: EASE_OUT
 					},
@@ -76,7 +77,7 @@
 				tl.from(
 					taskCountEl,
 					{
-						transform: 'translateY(100px) scale(0.8)',
+						transform: 'translateY(130px) scale(1)',
 						duration: 0.4,
 						ease: EASE_OUT
 					},
@@ -106,12 +107,16 @@
 		exitTl = tl;
 
 		if (numsWrap) {
-			tl.to(numsWrap, {
-				scale: 2,
-				duration: 0.4,
-				ease: EASE_IN,
-				stagger: { amount: 0.14, from: 'random' }
-			});
+			tl.to(
+				numsWrap,
+				{
+					scale: 2,
+					duration: 0.4,
+					ease: EASE_IN,
+					stagger: { amount: 0.14, from: 'random' }
+				},
+				0
+			);
 		}
 
 		if (handsWrapEl) tl.to(handsWrapEl, { scale: 1.8, duration: 0.3, ease: EASE_IN }, 0);
@@ -140,6 +145,7 @@
 		if (t.to !== '/pomodoro' && t.to !== '/stack' && t.to !== '/settings') return;
 
 		const dest = t.to;
+		const lr = dest === '/pomodoro';
 
 		exitTl?.kill();
 		const tl = gsap.timeline({
@@ -150,13 +156,44 @@
 		});
 		exitTl = tl;
 
-		if (taskCountEl) {
-			tl.to(taskCountEl, {
-				y: 200,
-				scale: 0.9,
-				duration: 0.4,
-				ease: EASE_IN
-			});
+		if (numsWrap && handsWrapEl && clockWrap && taskCountEl) {
+			tl.to(
+				numsWrap,
+				{
+					transform: `translateX(${lr ? '50' : '-50'}%)`,
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+			tl.to(
+				handsWrapEl,
+				{
+					transform: `translateX(${lr ? '50' : '-50'}%)`,
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+			tl.to(
+				clockWrap,
+				{
+					transform: `translateX(${lr ? '50' : '-50'}%)`,
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
+			tl.to(
+				taskCountEl,
+				{
+					transform: 'translateY(100px)',
+					scale: 0.9,
+					duration: 0.2,
+					ease: EASE_IN
+				},
+				0
+			);
 		}
 		return () => {
 			exitTl?.kill();
