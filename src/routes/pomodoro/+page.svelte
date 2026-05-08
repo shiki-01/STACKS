@@ -31,7 +31,7 @@
 	let countMode = $state<'work' | 'rest' | 'loop'>('work');
 
 	// Knob baseline tracking (non-reactive)
-	let baseRotation = 0;
+	let baseRotation = get(physicsRotation);
 	let baseWork = workMinutes;
 	let baseRest = restMinutes;
 	let baseLoop = loopCount;
