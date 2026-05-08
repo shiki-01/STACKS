@@ -488,35 +488,44 @@
 						onkeydown={(e) => e.preventDefault()}
 					>
 						<!-- 右スワイプ(完了)の背景：アイコンは左端から中央へ -->
-						<div
-							class="swipe-bg-right abs inset:0 flex ai:center"
-							style="opacity:0; background:linear-gradient(90deg,#1a4d2a 0%,#2d7a42 100%); border-radius:12px;"
-						>
+						<div class="swipe-bg-right abs inset:0 flex ai:center">
 							<div
 								class="swipe-icon-right"
 								style="margin-left:18px; margin-right:auto; flex-shrink:0;"
 							>
-								<svg width="28" height="28" viewBox="0 0 100 100" fill="none">
-									<path d="M26 51.0769L41.3928 64L73 36" stroke="#F7F7F7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+								<svg width="34" height="34" viewBox="0 0 100 100" fill="none">
+									<path
+										d="M26 51.0769L41.3928 64L73 36"
+										stroke="#F7F7F7"
+										stroke-width="7"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
 								</svg>
 							</div>
 						</div>
 						<!-- 左スワイプ(削除)の背景：アイコンは右端から中央へ -->
-						<div
-							class="swipe-bg-left abs inset:0 flex ai:center"
-							style="opacity:0; background:linear-gradient(270deg,#4d1a1a 0%,#7a2d2d 100%); border-radius:12px;"
-						>
+						<div class="swipe-bg-left abs inset:0 flex ai:center">
 							<div
 								class="swipe-icon-left"
 								style="margin-left:auto; margin-right:18px; flex-shrink:0;"
 							>
-								<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+								<svg
+									width="42"
+									height="42"
+									viewBox="0 0 100 100"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
 									<path
-										d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-										stroke="white"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
+										d="M40.6957 38.1978L38.6252 30.4704L52.1481 26.8469L54.2187 34.5743M40.6957 38.1978L30.0706 41.0448M40.6957 38.1978L54.2187 34.5743M54.2187 34.5743L64.8439 31.7273"
+										stroke="#DF4242"
+										stroke-width="6"
+									/>
+									<path
+										d="M33 49H38M38 49L40 73H60L62 49M38 49H62M62 49H67"
+										stroke="#DF4242"
+										stroke-width="6"
 									/>
 								</svg>
 							</div>
