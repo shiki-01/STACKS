@@ -2,7 +2,7 @@
 	import { onMount, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { pendingTasks, deadlineColor, countColor, dueDateLabel } from '$lib/localTasks';
+	import { pendingTasks, deadlineColor, countColor, dueDateLabel, completeLocalTask, removeLocalTask } from '$lib/localTasks';
 	import gsap from 'gsap';
 	import CircleClock from '$lib/components/CircleClock.svelte';
 	import { physicsRotation, physicsClickCount, modeSwitchEnabled } from '$lib/physicsController';
@@ -28,6 +28,14 @@
 	let currentRotationX = 0;
 	let didDrag = false;
 	let pointerStartTaskId: string | null = null;
+
+	// ── 横スワイプ状態 ──────────────────────────────────────────────────────
+	let swipeStartX = 0;
+	let swipeX = 0;
+	let swipeTaskId: string | null = null;
+	type SwipeMode = 'none' | 'h' | 'v';
+	let swipeMode: SwipeMode = 'none';
+	// ─────────────────────────────────────────────────────────────────────────
 	let scrollProgress = $state(0);
 
 	const CARD_ANGLE = 22;
@@ -86,13 +94,73 @@
 		rotateTo(currentIndex + Math.sign(e.deltaY) * steps);
 	}
 
+	// ── スワイプビジュアル更新 ─────────────────────────────────────────────
+	function updateSwipeVisual(taskId: string, x: number) {
+		const el = drum?.querySelector(`[data-task-id="${taskId}"]`) as HTMLElement | null;
+		if (!el) return;
+		const cardInner = el.querySelector('.card-inner') as HTMLElement | null;
+		const bgRight = el.querySelector('.swipe-bg-right') as HTMLElement | null;
+		const bgLeft = el.querySelector('.swipe-bg-left') as HTMLElement | null;
+		const iconRight = el.querySelector('.swipe-icon-right') as HTMLElement | null;
+		const iconLeft = el.querySelector('.swipe-icon-left') as HTMLElement | null;
+
+		if (cardInner) cardInner.style.transform = `translateX(${x}px)`;
+
+		const opacity = Math.min(Math.abs(x) / 60, 1);
+		if (x >= 0) {
+			if (bgRight) bgRight.style.opacity = String(opacity);
+			if (bgLeft) bgLeft.style.opacity = '0';
+			if (iconRight) iconRight.style.transform = `translateX(${x * 0.35}px)`;
+		} else {
+			if (bgLeft) bgLeft.style.opacity = String(opacity);
+			if (bgRight) bgRight.style.opacity = '0';
+			if (iconLeft) iconLeft.style.transform = `translateX(${x * 0.35}px)`;
+		}
+	}
+
+	function snapBackSwipe(taskId: string) {
+		const el = drum?.querySelector(`[data-task-id="${taskId}"]`) as HTMLElement | null;
+		if (!el) return;
+		const cardInner = el.querySelector('.card-inner') as HTMLElement | null;
+		const bgRight = el.querySelector('.swipe-bg-right') as HTMLElement | null;
+		const bgLeft = el.querySelector('.swipe-bg-left') as HTMLElement | null;
+		gsap.to(cardInner, { x: 0, duration: 0.35, ease: 'power3.out' });
+		gsap.to(bgRight, { opacity: 0, duration: 0.25, ease: 'power2.out' });
+		gsap.to(bgLeft, { opacity: 0, duration: 0.25, ease: 'power2.out' });
+	}
+
+	function animateSwipeOut(taskId: string, dir: 'right' | 'left') {
+		const el = drum?.querySelector(`[data-task-id="${taskId}"]`) as HTMLElement | null;
+		if (!el) return;
+		const cardInner = el.querySelector('.card-inner') as HTMLElement | null;
+		const bgEl = el.querySelector(dir === 'right' ? '.swipe-bg-right' : '.swipe-bg-left') as HTMLElement | null;
+		const iconEl = el.querySelector(dir === 'right' ? '.swipe-icon-right' : '.swipe-icon-left') as HTMLElement | null;
+		const targetX = dir === 'right' ? 420 : -420;
+
+		const tl = gsap.timeline({
+			onComplete: () => {
+				if (dir === 'right') completeLocalTask(taskId);
+				else removeLocalTask(taskId);
+			}
+		});
+		tl.to(cardInner, { x: targetX, duration: 0.28, ease: 'power2.in' }, 0);
+		tl.to(iconEl, { x: dir === 'right' ? 30 : -30, scale: 1.2, duration: 0.22, ease: 'power2.in' }, 0);
+		tl.to(el, { opacity: 0, duration: 0.22, ease: 'power1.out' }, 0.1);
+		tl.to(bgEl, { opacity: 0, scale: 1.04, duration: 0.28, ease: 'power1.out' }, 0.08);
+	}
+	// ─────────────────────────────────────────────────────────────────────────
+
 	function onPointerDown(e: PointerEvent) {
 		if (!drum) return;
 		isDragging = true;
 		activePointerId = e.pointerId;
 		dragStartY = e.clientY;
+		swipeStartX = e.clientX;
 		dragStartRotation = currentRotationX;
 		didDrag = false;
+		swipeMode = 'none';
+		swipeX = 0;
+		swipeTaskId = null;
 		pointerStartTaskId =
 			e.target instanceof Element
 				? (e.target.closest<HTMLElement>('[data-task-id]')?.dataset.taskId ?? null)
@@ -104,25 +172,56 @@
 
 	function onPointerMove(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
-		const delta = dragStartY - e.clientY;
-		if (!didDrag && Math.abs(delta) < DRAG_START_PX) return;
-		didDrag = true;
-		setRotation(dragStartRotation + delta * DRAG_ROTATION_FACTOR);
+
+		const dy = dragStartY - e.clientY;
+		const dx = e.clientX - swipeStartX;
+		const absDx = Math.abs(dx);
+		const absDy = Math.abs(dy);
+
+		if (swipeMode === 'none') {
+			if (absDx < DRAG_START_PX && absDy < DRAG_START_PX) return;
+			swipeMode = absDx > absDy ? 'h' : 'v';
+			if (swipeMode === 'h') swipeTaskId = pointerStartTaskId;
+		}
+
+		if (swipeMode === 'h') {
+			if (!swipeTaskId) return;
+			swipeX = dx;
+			updateSwipeVisual(swipeTaskId, swipeX);
+		} else {
+			didDrag = true;
+			setRotation(dragStartRotation + dy * DRAG_ROTATION_FACTOR);
+		}
 	}
 
 	function onPointerUp(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
 
-		const swipeDy = dragStartY - e.clientY; // 正 = 上スワイプ、負 = 下スワイプ
-
+		const dy = dragStartY - e.clientY;
 		isDragging = false;
 		activePointerId = null;
 		(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
 
+		if (swipeMode === 'h') {
+			e.stopPropagation();
+			const THRESHOLD = 80;
+			if (swipeTaskId) {
+				if (swipeX > THRESHOLD) animateSwipeOut(swipeTaskId, 'right');
+				else if (swipeX < -THRESHOLD) animateSwipeOut(swipeTaskId, 'left');
+				else snapBackSwipe(swipeTaskId);
+			}
+			swipeMode = 'none';
+			swipeTaskId = null;
+			swipeX = 0;
+			didDrag = false;
+			pointerStartTaskId = null;
+			return;
+		}
+
 		if (!didDrag && pointerStartTaskId) {
 			// タップ → タスク詳細へ（履歴に積まない）
 			goto(resolve('/table/[id]', { id: pointerStartTaskId }), { replaceState: true });
-		} else if (didDrag && swipeDy < -80 && currentIndex === 0 && dragStartRotation === 0) {
+		} else if (didDrag && dy < -80 && currentIndex === 0 && dragStartRotation === 0) {
 			// 先頭にいるときの大きな下スワイプ → /table を閉じて前のページへ戻る
 			e.stopPropagation();
 			history.back();
@@ -132,14 +231,19 @@
 			rotateTo(currentIndex);
 		}
 
+		swipeMode = 'none';
 		didDrag = false;
 		pointerStartTaskId = null;
 	}
 
 	function onPointerCancel(e: PointerEvent) {
 		if (!isDragging || e.pointerId !== activePointerId) return;
+		if (swipeMode === 'h' && swipeTaskId) snapBackSwipe(swipeTaskId);
 		isDragging = false;
 		activePointerId = null;
+		swipeMode = 'none';
+		swipeTaskId = null;
+		swipeX = 0;
 		didDrag = false;
 		pointerStartTaskId = null;
 		rotateTo(currentIndex);
@@ -359,9 +463,32 @@
 						data-task-id={task.id}
 						role="button"
 						tabindex={active ? 0 : -1}
-						style="transform: rotateX({-angle}deg) translateZ({CYLINDER_R}px);"
+						style="transform: rotateX({-angle}deg) translateZ({CYLINDER_R}px); overflow:hidden; border-radius:12px;"
 						onkeydown={(e) => e.preventDefault()}
 					>
+						<!-- 右スワイプ(完了)の背景 -->
+						<div
+							class="swipe-bg-right abs inset:0 flex ai:center"
+							style="opacity:0; background:linear-gradient(90deg,#1a4d2a 0%,#2d7a42 100%); border-radius:12px;"
+						>
+							<div class="swipe-icon-right" style="margin-left:auto; margin-right:18px; flex-shrink:0;">
+								<svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+									<path d="M5 13l4 4L19 7" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</div>
+						</div>
+						<!-- 左スワイプ(削除)の背景 -->
+						<div
+							class="swipe-bg-left abs inset:0 flex ai:center"
+							style="opacity:0; background:linear-gradient(270deg,#4d1a1a 0%,#7a2d2d 100%); border-radius:12px;"
+						>
+							<div class="swipe-icon-left" style="margin-right:auto; margin-left:18px; flex-shrink:0;">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+									<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</div>
+						</div>
+						<!-- カード本体（横スワイプで平行移動） -->
 						<div
 							class="card-inner w:full h:full bg:#1e1e1e r:12px p:0|20px flex flex:column ai:start jc:center gap:7px box-sizing:border-box"
 							class:active
