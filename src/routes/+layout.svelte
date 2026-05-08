@@ -271,8 +271,12 @@
 		const currentModeIndex = currentIndex;
 
 		// 垂直スワイプ（上スワイプで /table を開く）
+		// 誤検知防止：円の下 40% から始まったスワイプのみ受け付ける
 		if (absDy > absDx && absDy >= 40) {
-			if (dy > 0 && !page.url.pathname.startsWith('/table') && !navOpen) {
+			const mainRect = mainEl?.getBoundingClientRect();
+			const relY = mainRect ? pointerStartY - mainRect.top : pointerStartY;
+			const h = mainRect?.height ?? 720;
+			if (dy > 0 && relY > h * 0.6 && !page.url.pathname.startsWith('/table') && !navOpen) {
 				goto(resolve('/table'));
 			}
 			return;
