@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor } from '$lib/localTasks';
+	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor, dueDateLabel } from '$lib/localTasks';
 	import { get } from 'svelte/store';
 	import { physicsRotation, physicsClickCount } from '$lib/physicsController';
-	import { onMount } from 'svelte';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 
@@ -13,21 +12,12 @@
 	const dateStr = `${now.getMonth() + 1}月${now.getDate()}日（${'日月火水木金土'[now.getDay()]}）`;
 	const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-	const id = $derived($page.params.id);
+	const id = $derived(page.params.id);
 	const task = $derived(get(localTasks).find((t) => t.id === id));
 
 	$effect(() => {
 		if (!task) goto(resolve('/table'));
 	});
-
-	function dueDateLabel(dueDate: Date | null): string {
-		if (!dueDate) return '期限なし';
-		const days = (dueDate.getTime() - Date.now()) / 86_400_000;
-		if (days < 0) return '期限切れ';
-		if (days < 1) return '今日';
-		if (days < 2) return '明日';
-		return `${Math.ceil(days)}日後`;
-	}
 
 	function formatDate(date: Date): string {
 		return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
@@ -35,13 +25,13 @@
 
 	function handleComplete() {
 		if (!task) return;
-		completeLocalTask(task.id!);
+		completeLocalTask(task.id);
 		goto(resolve('/table'));
 	}
 
 	function handleDelete() {
 		if (!task) return;
-		removeLocalTask(task.id!);
+		removeLocalTask(task.id);
 		goto(resolve('/table'));
 	}
 
@@ -86,11 +76,6 @@
 		else if (selectedAction === 'delete') handleDelete();
 	});
 
-	onMount(() => {
-		if (typeof window !== 'undefined') {
-			window.document.body.className = 'bg:background';
-		}
-	});
 </script>
 
 <div class="rel w:100% h:100% bg:base-6 flex flex:column ai:center jc:center px:48px box-sizing:border-box">
