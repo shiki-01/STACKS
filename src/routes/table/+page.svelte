@@ -120,8 +120,8 @@
 		(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
 
 		if (!didDrag && pointerStartTaskId) {
-			// タップ → タスク詳細へ
-			goto(resolve('/table/[id]', { id: pointerStartTaskId }));
+			// タップ → タスク詳細へ（履歴に積まない）
+			goto(resolve('/table/[id]', { id: pointerStartTaskId }), { replaceState: true });
 		} else if (didDrag && swipeDy < -80 && currentIndex === 0 && dragStartRotation === 0) {
 			// 先頭にいるときの大きな下スワイプ → /table を閉じて前のページへ戻る
 			e.stopPropagation();
@@ -175,7 +175,7 @@
 		prevClickCount = count;
 		const tasks = $pendingTasks;
 		const task = tasks[currentIndex];
-		if (task) goto(resolve('/table/[id]', { id: task.id }));
+		if (task) goto(resolve('/table/[id]', { id: task.id }), { replaceState: true });
 	});
 
 	/** スクロール位置に応じてタスクカウントをフェード */

@@ -16,7 +16,7 @@
 	const task = $derived(get(localTasks).find((t) => t.id === id));
 
 	$effect(() => {
-		if (!task) goto(resolve('/table'));
+		if (!task) goto(resolve('/table'), { replaceState: true });
 	});
 
 	function formatDate(date: Date): string {
@@ -26,17 +26,17 @@
 	function handleComplete() {
 		if (!task) return;
 		completeLocalTask(task.id);
-		goto(resolve('/table'));
+		goto(resolve('/table'), { replaceState: true });
 	}
 
 	function handleDelete() {
 		if (!task) return;
 		removeLocalTask(task.id);
-		goto(resolve('/table'));
+		goto(resolve('/table'), { replaceState: true });
 	}
 
 	function handleBack() {
-		goto(resolve('/table'));
+		goto(resolve('/table'), { replaceState: true });
 	}
 
 	// ---- Physics: ノブでアクション選択、ボタンで確定 ----
