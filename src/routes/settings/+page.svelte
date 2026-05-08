@@ -7,27 +7,29 @@
 	import { EASE_OUT, EASE_IN } from '$lib/easings';
 	import { resolve } from '$app/paths';
 	import { localTasks, type LocalTask } from '$lib/localTasks';
+	import { currentLocale, langFiles, LOCALES, type Locale } from '$lib/languageStore';
+	import { t } from '$lib/i18n';
 
 	let pageEl: HTMLDivElement | undefined = $state();
 
 	onMount(() => {
-		const t = get(pageTransition);
-		if (!t || !pageEl) return;
+		const tr = get(pageTransition);
+		if (!tr || !pageEl) return;
 
-		if (t.from === '/table') {
+		if (tr.from === '/table') {
 			gsap.from(pageEl, { scale: 0.94, opacity: 0, duration: 0.35, ease: EASE_OUT });
-		} else if (t.from === '/clock' || t.from === '/pomodoro' || t.from === '/stack') {
+		} else if (tr.from === '/clock' || tr.from === '/pomodoro' || tr.from === '/stack') {
 			gsap.from(pageEl, { opacity: 0, duration: 0.3, ease: EASE_OUT });
 		}
 	});
 
 	$effect(() => {
-		const t = $pageTransition;
-		if (!t || t.from !== '/settings') return;
-		if (t.to !== '/clock' && t.to !== '/pomodoro' && t.to !== '/stack' && t.to !== '/table') return;
+		const tr = $pageTransition;
+		if (!tr || tr.from !== '/settings') return;
+		if (tr.to !== '/clock' && tr.to !== '/pomodoro' && tr.to !== '/stack' && tr.to !== '/table') return;
 		if (!pageEl) return;
 
-		const dest = t.to;
+		const dest = tr.to;
 		const isTable = dest === '/table';
 
 		gsap.to(pageEl, {
@@ -43,10 +45,27 @@
 		return () => { if (pageEl) gsap.killTweensOf(pageEl); };
 	});
 
-	// ---- JSON editor (hidden, 3-tap to open) ----
+	// ---- i18n ----
+	const s = $derived(t($currentLocale));
+
+	// ---- 言語切替 (通常設定) ----
+	function setLocale(code: Locale) {
+		currentLocale.set(code);
+	}
+
+	// ---- JSON エディタ (隠し設定: 3タップで開く) ----
 	let showEditor = $state(false);
+	let editorTab = $state<'tasks' | 'lang'>('tasks');
+
+	// --- タスク JSON タブ ---
 	let jsonText = $state('');
 	let applyError = $state('');
+
+	// --- 言語ファイル タブ ---
+	let langFileLocale = $state<Locale>($currentLocale);
+	let langFileText = $state('');
+	let langFileSaveMsg = $state('');
+
 	let tapCount = 0;
 	let tapTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -64,20 +83,22 @@
 	function openEditor() {
 		const tasks = get(localTasks);
 		jsonText = JSON.stringify(
-			tasks.map(t => ({
-				id: t.id,
-				title: t.title,
-				description: t.description,
-				dueDate: t.dueDate?.toISOString() ?? null,
-				priority: t.priority,
-				category: t.category,
-				status: t.status,
-				subtasks: t.subtasks,
-				createdAt: t.createdAt.toISOString(),
-				updatedAt: t.updatedAt.toISOString()
+			tasks.map((task) => ({
+				id: task.id,
+				title: task.title,
+				description: task.description,
+				dueDate: task.dueDate?.toISOString() ?? null,
+				priority: task.priority,
+				category: task.category,
+				status: task.status,
+				subtasks: task.subtasks,
+				createdAt: task.createdAt.toISOString(),
+				updatedAt: task.updatedAt.toISOString()
 			})),
 			null, 2
 		);
+		editorTab = 'tasks';
+		loadLangFileForLocale(langFileLocale);
 		showEditor = true;
 		applyError = '';
 	}
@@ -85,18 +106,46 @@
 	function applyJson() {
 		try {
 			const parsed = JSON.parse(jsonText);
-			if (!Array.isArray(parsed)) throw new Error('配列が必要です');
-			const tasks: LocalTask[] = parsed.map((t) => ({
-				...t,
-				dueDate: t.dueDate ? new Date(t.dueDate) : null,
-				createdAt: new Date(t.createdAt),
-				updatedAt: new Date(t.updatedAt)
+			if (!Array.isArray(parsed)) throw new Error(s.arrayRequired);
+			const tasks: LocalTask[] = parsed.map((task) => ({
+				...task,
+				dueDate: task.dueDate ? new Date(task.dueDate) : null,
+				createdAt: new Date(task.createdAt),
+				updatedAt: new Date(task.updatedAt)
 			}));
 			localTasks.set(tasks);
 			showEditor = false;
 			applyError = '';
 		} catch (e) {
 			applyError = (e as Error).message;
+		}
+	}
+
+	// ---- 言語ファイル タブ ----
+	function loadLangFileForLocale(locale: Locale) {
+		const files = get(langFiles);
+		langFileText = files[locale] ?? '';
+		langFileSaveMsg = '';
+	}
+
+	function onLangFileLocaleChange(locale: Locale) {
+		langFileLocale = locale;
+		loadLangFileForLocale(locale);
+	}
+
+	function saveLangFile() {
+		langFiles.update((files) => ({ ...files, [langFileLocale]: langFileText }));
+		langFileSaveMsg = s.langFileLoaded;
+		setTimeout(() => { langFileSaveMsg = ''; }, 1500);
+	}
+
+	function loadLangFileIntoEditor() {
+		const files = get(langFiles);
+		const content = files[$currentLocale];
+		if (content) {
+			jsonText = content;
+			editorTab = 'tasks';
+			applyError = '';
 		}
 	}
 
@@ -116,10 +165,9 @@
 		return { id: mid(), title, description: desc, dueDate, priority, category, status: 'pending', subtasks: [], createdAt: BASE, updatedAt: BASE };
 	}
 
-	const presets: { label: string; tasks: ReturnType<typeof mt>[] }[] = [
+	const presets: { labelKey: keyof typeof s; tasks: ReturnType<typeof mt>[] }[] = [
 		{
-			// 赤5 (〜5/10) + オレンジ4 (5/11〜16) + 青3 (5/17以降・null)
-			label: '緊急',
+			labelKey: 'urgent',
 			tasks: (() => {
 				seq = 0;
 				return [
@@ -139,8 +187,7 @@
 			})()
 		},
 		{
-			// 赤3 (〜5/10) + オレンジ4 (5/11〜16) + 青3 (5/17以降・null)
-			label: '普通',
+			labelKey: 'normal',
 			tasks: (() => {
 				seq = 0;
 				return [
@@ -158,8 +205,7 @@
 			})()
 		},
 		{
-			// 赤1 (5/10) + オレンジ2 (5/13・5/15) + 青3 (5/23以降・null)
-			label: '余裕',
+			labelKey: 'relaxed',
 			tasks: (() => {
 				seq = 0;
 				return [
@@ -178,6 +224,9 @@
 		jsonText = JSON.stringify(tasks, null, 2);
 		applyError = '';
 	}
+
+	// 現在の言語ファイルが存在するか
+	const hasCurrentLangFile = $derived(!!get(langFiles)[$currentLocale]);
 </script>
 
 <div
@@ -185,74 +234,206 @@
 	aria-label="settings"
 	bind:this={pageEl}
 >
-	<span
-		class="f:2rem font-weight:600 fg:base-2 cursor:default user-select:none"
-		role="button"
-		tabindex="0"
-		onclick={handleTap}
-		onkeydown={() => {}}
-	>
-		設定
-	</span>
+	<!-- 通常設定: 言語選択 + 設定テキスト -->
+	<div class="flex flex:column ai:center gap:14px" style="max-width: 200px;">
+		<!-- 設定テキスト (3タップで隠し設定を開く) -->
+		<span
+			class="f:2rem font-weight:600 fg:base-2 cursor:default user-select:none"
+			role="button"
+			tabindex="0"
+			onclick={handleTap}
+			onkeydown={() => {}}
+		>
+			{s.settings}
+		</span>
 
+		<!-- 言語ピッカー -->
+		<div class="flex flex:column ai:center gap:6px">
+			<span class="f:0.6rem fg:base-3 user-select:none letter-spacing:0.08em" style="text-transform:uppercase;">
+				{s.language}
+			</span>
+			<div class="flex flex:wrap jc:center gap:4px" style="max-width: 180px;">
+				{#each LOCALES as loc}
+					<button
+						class="f:0.65rem font-weight:700 cursor:pointer px:7px py:3px r:99px user-select:none"
+						style="
+							background: {$currentLocale === loc.code ? '#e0e0e0' : '#2a2a2a'};
+							color: {$currentLocale === loc.code ? '#111' : '#888'};
+							border: 1px solid {$currentLocale === loc.code ? '#e0e0e0' : '#3a3a3a'};
+							transition: background 0.15s, color 0.15s;
+						"
+						onclick={() => setLocale(loc.code)}
+					>
+						{loc.shortLabel}
+					</button>
+				{/each}
+			</div>
+		</div>
+	</div>
+
+	<!-- 隠し設定エディタ -->
 	{#if showEditor}
 		<div class="abs inset:0 r:full overflow:hidden flex ai:center jc:center" style="background: rgba(10,10,10,0.96); z-index: 50;">
-			<div class="flex flex:column ai:center gap:12px" style="width: 480px;">
+			<div class="flex flex:column ai:center gap:10px" style="width: 480px;">
+
+				<!-- ヘッダー: タブ + 閉じるボタン -->
 				<div class="flex w:full ai:center jc:space-between px:8px">
-					<span class="f:0.95rem font-weight:700 fg:base-1">タスク JSON</span>
+					<div class="flex gap:6px">
+						<button
+							class="f:0.85rem font-weight:700 cursor:pointer px:12px py:5px r:6px"
+							style="
+								background: {editorTab === 'tasks' ? '#3a3a3a' : 'transparent'};
+								color: {editorTab === 'tasks' ? '#f0f0f0' : '#666'};
+								border: 1px solid {editorTab === 'tasks' ? '#555' : '#2a2a2a'};
+							"
+							onclick={() => { editorTab = 'tasks'; }}
+						>
+							{s.taskJson}
+						</button>
+						<button
+							class="f:0.85rem font-weight:700 cursor:pointer px:12px py:5px r:6px"
+							style="
+								background: {editorTab === 'lang' ? '#3a3a3a' : 'transparent'};
+								color: {editorTab === 'lang' ? '#f0f0f0' : '#666'};
+								border: 1px solid {editorTab === 'lang' ? '#555' : '#2a2a2a'};
+							"
+							onclick={() => { editorTab = 'lang'; }}
+						>
+							{s.langFiles}
+						</button>
+					</div>
 					<button
 						class="f:0.8rem fg:base-3 bg:transparent b:none cursor:pointer px:8px py:4px r:6px"
 						style="border: 1px solid #333;"
-						onclick={() => { showEditor = false; applyError = ''; }}
+						onclick={() => { showEditor = false; applyError = ''; langFileSaveMsg = ''; }}
 					>
-						閉じる
+						{s.close}
 					</button>
 				</div>
 
-				<div class="flex gap:8px">
-					{#each presets as preset, i (i)}
+				<!-- タスク JSON タブ -->
+				{#if editorTab === 'tasks'}
+					<div class="flex gap:8px flex:wrap jc:center">
+						{#each presets as preset}
+							<button
+								class="f:0.75rem font-weight:600 fg:base-2 cursor:pointer px:12px py:6px r:99px"
+								style="background: #2a2a2a; border: 1px solid #3a3a3a;"
+								onclick={() => loadPreset(preset.tasks)}
+							>
+								{s[preset.labelKey] as string}
+							</button>
+						{/each}
+						<!-- 現在の言語ファイルがあれば読み込みボタンを表示 -->
+						{#if $langFiles[$currentLocale]}
+							<button
+								class="f:0.75rem font-weight:600 cursor:pointer px:12px py:6px r:99px"
+								style="background: #1a2a1a; border: 1px solid #2a4a2a; color: #6dcf6d;"
+								onclick={loadLangFileIntoEditor}
+							>
+								{LOCALES.find(l => l.code === $currentLocale)?.shortLabel} ↑
+							</button>
+						{/if}
+					</div>
+
+					<textarea
+						bind:value={jsonText}
+						spellcheck="false"
+						style="
+							width: 480px;
+							height: 260px;
+							background: #111;
+							color: #ccc;
+							border: 1px solid #333;
+							border-radius: 10px;
+							padding: 12px;
+							font-family: monospace;
+							font-size: 11px;
+							line-height: 1.5;
+							resize: none;
+							outline: none;
+							box-sizing: border-box;
+							overflow-y: auto;
+						"
+					></textarea>
+
+					{#if applyError}
+						<span class="f:0.75rem fg:#FF4444">{applyError}</span>
+					{/if}
+
+					<button
+						class="f:0.9rem font-weight:700 fg:base-1 cursor:pointer px:32px py:12px r:99px"
+						style="background: #2a2a2a; border: 1px solid #444; width: 200px;"
+						onclick={applyJson}
+					>
+						{s.apply}
+					</button>
+
+				<!-- 言語ファイル タブ -->
+				{:else}
+					<!-- 言語選択 -->
+					<div class="flex flex:wrap gap:5px jc:center" style="max-width: 400px;">
+						{#each LOCALES as loc}
+							<button
+								class="f:0.75rem font-weight:700 cursor:pointer px:10px py:5px r:99px"
+								style="
+									background: {langFileLocale === loc.code ? '#2a3a2a' : '#2a2a2a'};
+									color: {langFileLocale === loc.code ? '#6dcf6d' : '#888'};
+									border: 1px solid {langFileLocale === loc.code ? '#3a5a3a' : '#3a3a3a'};
+								"
+								onclick={() => onLangFileLocaleChange(loc.code)}
+							>
+								{loc.shortLabel}
+								{#if $langFiles[loc.code]}
+									<span style="color: #4CAF50; margin-left: 2px;">●</span>
+								{/if}
+							</button>
+						{/each}
+					</div>
+
+					<!-- 選択中の言語名 -->
+					<span class="f:0.75rem" style="color: #666;">
+						{LOCALES.find(l => l.code === langFileLocale)?.label ?? langFileLocale}
+						{#if !$langFiles[langFileLocale]}
+							— <span style="color: #555;">{s.noLangFile}</span>
+						{/if}
+					</span>
+
+					<textarea
+						bind:value={langFileText}
+						spellcheck="false"
+						placeholder={s.noLangFile}
+						style="
+							width: 480px;
+							height: 230px;
+							background: #111;
+							color: #ccc;
+							border: 1px solid #333;
+							border-radius: 10px;
+							padding: 12px;
+							font-family: monospace;
+							font-size: 11px;
+							line-height: 1.5;
+							resize: none;
+							outline: none;
+							box-sizing: border-box;
+							overflow-y: auto;
+						"
+					></textarea>
+
+					<div class="flex ai:center gap:12px">
 						<button
-							class="f:0.75rem font-weight:600 fg:base-2 cursor:pointer px:12px py:6px r:99px"
-							style="background: #2a2a2a; border: 1px solid #3a3a3a;"
-							onclick={() => loadPreset(preset.tasks)}
+							class="f:0.9rem font-weight:700 fg:base-1 cursor:pointer px:32px py:12px r:99px"
+							style="background: #1a2a1a; border: 1px solid #3a5a3a; width: 180px;"
+							onclick={saveLangFile}
 						>
-							{preset.label}
+							{s.save}
 						</button>
-					{/each}
-				</div>
-
-				<textarea
-					bind:value={jsonText}
-					spellcheck="false"
-					style="
-						width: 480px;
-						height: 260px;
-						background: #111;
-						color: #ccc;
-						border: 1px solid #333;
-						border-radius: 10px;
-						padding: 12px;
-						font-family: monospace;
-						font-size: 11px;
-						line-height: 1.5;
-						resize: none;
-						outline: none;
-						box-sizing: border-box;
-						overflow-y: auto;
-					"
-				></textarea>
-
-				{#if applyError}
-					<span class="f:0.75rem fg:#FF4444">{applyError}</span>
+						{#if langFileSaveMsg}
+							<span class="f:0.75rem" style="color: #4CAF50;">{langFileSaveMsg}</span>
+						{/if}
+					</div>
 				{/if}
 
-				<button
-					class="f:0.9rem font-weight:700 fg:base-1 cursor:pointer px:32px py:12px r:99px"
-					style="background: #2a2a2a; border: 1px solid #444; width: 200px;"
-					onclick={applyJson}
-				>
-					適用
-				</button>
 			</div>
 		</div>
 	{/if}

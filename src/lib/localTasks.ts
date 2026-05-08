@@ -15,6 +15,8 @@
  */
 
 import { writable, derived, get } from 'svelte/store';
+import { t } from './i18n';
+import type { Locale } from './languageStore';
 
 export interface LocalTask {
 	id: string;
@@ -196,20 +198,16 @@ export function bubbleRadius(dueDate: Date | null): number {
 }
 
 /**
- * 期限までの残り日数を人間が読める文字列に変換する
- * 期限なし: '期限なし'
- * 期限切れ: '期限切れ'
- * 今日中  : '今日'
- * 明日中  : '明日'
- * それ以降: 'N日後'
+ * 期限までの残り日数を人間が読める文字列に変換する（ロケール対応）
  */
-export function dueDateLabel(dueDate: Date | null): string {
-	if (!dueDate) return '期限なし';
+export function dueDateLabel(dueDate: Date | null, locale: Locale = 'ja'): string {
+	const s = t(locale);
+	if (!dueDate) return s.dueNone;
 	const days = (dueDate.getTime() - Date.now()) / 86_400_000;
-	if (days < 0) return '期限切れ';
-	if (days < 1) return '今日';
-	if (days < 2) return '明日';
-	return `${Math.ceil(days)}日後`;
+	if (days < 0) return s.overdue;
+	if (days < 1) return s.today;
+	if (days < 2) return s.tomorrow;
+	return s.daysLater(Math.ceil(days));
 }
 
 // ---- アクション ----

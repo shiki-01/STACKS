@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor, dueDateLabel } from '$lib/localTasks';
 	import { get } from 'svelte/store';
+	import { currentLocale } from '$lib/languageStore';
 	import { physicsRotation, physicsClickCount } from '$lib/physicsController';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
@@ -91,7 +92,7 @@
 			<div class="flex ai:center gap:6px">
 				<span class="w:7px h:7px r:full flex-shrink:0" style="background:{deadlineColor(task.dueDate)}"></span>
 				<span class="f:0.8rem font-weight:600" style="color:{deadlineColor(task.dueDate)}">
-					{dueDateLabel(task.dueDate)}
+					{dueDateLabel(task.dueDate, $currentLocale)}
 					{#if task.dueDate}
 						<span class="font-weight:400 color:#666 ml:4px">（{formatDate(task.dueDate)}）</span>
 					{/if}

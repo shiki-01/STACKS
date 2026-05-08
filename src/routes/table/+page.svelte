@@ -10,6 +10,7 @@
 		completeLocalTask,
 		removeLocalTask
 	} from '$lib/localTasks';
+	import { currentLocale } from '$lib/languageStore';
 	import gsap from 'gsap';
 	import CircleClock from '$lib/components/CircleClock.svelte';
 	import { physicsRotation, physicsClickCount, modeSwitchEnabled } from '$lib/physicsController';
@@ -542,7 +543,7 @@
 								<span class="w:6px h:6px r:full" style="background:{deadlineColor(task.dueDate)}"
 								></span>
 								<span class="f:0.7rem font-weight:500" style="color:{deadlineColor(task.dueDate)}"
-									>{dueDateLabel(task.dueDate)}</span
+									>{dueDateLabel(task.dueDate, $currentLocale)}</span
 								>
 							</div>
 						</div>
