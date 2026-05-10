@@ -2,7 +2,8 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { localTasks, completeLocalTask, removeLocalTask, deadlineColor, dueDateLabel } from '$lib/localTasks';
+	import { localTasks, deadlineColor, dueDateLabel } from '$lib/localTasks';
+	import { completeTask, removeTask } from '$lib/googleTasksStore';
 	import { get } from 'svelte/store';
 	import { currentLocale } from '$lib/languageStore';
 	import { t } from '$lib/i18n';
@@ -28,13 +29,13 @@
 
 	function handleComplete() {
 		if (!task) return;
-		completeLocalTask(task.id);
+		completeTask(task.id);
 		goto(resolve('/table'), { replaceState: true });
 	}
 
 	function handleDelete() {
 		if (!task) return;
-		removeLocalTask(task.id);
+		removeTask(task.id);
 		goto(resolve('/table'), { replaceState: true });
 	}
 

@@ -16,12 +16,14 @@
 	import { get } from 'svelte/store';
 
 	import { onMount } from 'svelte';
+	import { initGoogleTasks } from '$lib/googleTasksStore';
+	import type { LayoutData } from './$types';
 
 	const IS_PHYSICS = import.meta.env.VITE_IS_PHYSICS === 'true';
 	const CURSOR_VISIBLE = import.meta.env.VITE_CURSOR_VISIBLE === 'true';
 	const VERSION = '1.4.7';
 
-	let { children } = $props();
+	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
 	let navOpen = $state(false);
 	let mainEl: HTMLElement | undefined = $state();
@@ -33,6 +35,8 @@
 	let outParams = $state<TransitionParams>({ x: -560, duration: 380, ease: 'power3.in' });
 
 	onMount(() => {
+		initGoogleTasks(data.isAuthenticated);
+
 		if (!IS_PHYSICS) return;
 
 		const es = new EventSource('/api/rotation');
@@ -311,7 +315,7 @@
 </script>
 
 <main
-	class="w:720px h:720px mt:100px ml:100px r:full flex bg:base-6 ai:center jc:center flex-shrink:0"
+	class="w:720px h:720px r:full flex bg:base-6 ai:center jc:center flex-shrink:0"
 	style="touch-action: none; cursor: {CURSOR_VISIBLE ? 'default' : 'none'} !important;"
 	bind:this={mainEl}
 	onpointerdown={onPointerDown}

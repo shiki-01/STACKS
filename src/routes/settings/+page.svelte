@@ -3,12 +3,14 @@
 	import { get } from 'svelte/store';
 	import gsap from 'gsap';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { pageTransition, skipAnimationOnce } from '$lib/transitionStore';
 	import { EASE_OUT, EASE_IN } from '$lib/easings';
 	import { resolve } from '$app/paths';
 	import { localTasks, type LocalTask } from '$lib/localTasks';
 	import { currentLocale, langFiles, LOCALES, type Locale } from '$lib/languageStore';
 	import { t } from '$lib/i18n';
+	import { syncGoogleTasks } from '$lib/googleTasksStore';
 
 	let pageEl: HTMLDivElement | undefined = $state();
 
@@ -44,6 +46,13 @@
 		});
 		return () => { if (pageEl) gsap.killTweensOf(pageEl); };
 	});
+
+	// ---- 認証状態 ----
+	const isAuthenticated = $derived(page.data.isAuthenticated ?? false);
+
+	async function handleSync() {
+		await syncGoogleTasks();
+	}
 
 	// ---- i18n ----
 	const s = $derived(t($currentLocale));
@@ -268,6 +277,45 @@
 					</button>
 				{/each}
 			</div>
+		</div>
+
+		<!-- Google Tasks 連携 -->
+		<div class="flex flex:column ai:center gap:6px" style="margin-top: 4px;">
+			<span class="f:0.6rem fg:base-3 user-select:none letter-spacing:0.08em" style="text-transform:uppercase;">
+				Google Tasks
+			</span>
+			{#if isAuthenticated}
+				<div class="flex flex:column ai:center gap:5px">
+					<div class="flex ai:center gap:5px">
+						<span class="w:6px h:6px r:full" style="background: #4ECDC4; flex-shrink:0;"></span>
+						<span class="f:0.65rem" style="color: #4ECDC4;">連携中</span>
+					</div>
+					<div class="flex gap:4px">
+						<button
+							class="f:0.65rem font-weight:600 cursor:pointer px:9px py:3px r:99px"
+							style="background: #1a2a2a; border: 1px solid #2a4a4a; color: #4ECDC4;"
+							onclick={handleSync}
+						>
+							同期
+						</button>
+						<a
+							href="/auth/logout"
+							class="f:0.65rem font-weight:600 px:9px py:3px r:99px"
+							style="background: #2a1a1a; border: 1px solid #4a2a2a; color: #cc5555; text-decoration:none; display:flex; align-items:center;"
+						>
+							解除
+						</a>
+					</div>
+				</div>
+			{:else}
+				<a
+					href="/auth/login"
+					class="f:0.65rem font-weight:700 px:12px py:4px r:99px"
+					style="background: #1a1a2a; border: 1px solid #3a3a6a; color: #8888ee; text-decoration:none;"
+				>
+					Google でログイン
+				</a>
+			{/if}
 		</div>
 	</div>
 

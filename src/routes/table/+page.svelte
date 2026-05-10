@@ -6,10 +6,9 @@
 		pendingTasks,
 		deadlineColor,
 		countColor,
-		dueDateLabel,
-		completeLocalTask,
-		removeLocalTask
+		dueDateLabel
 	} from '$lib/localTasks';
+	import { completeTask, removeTask } from '$lib/googleTasksStore';
 	import { currentLocale } from '$lib/languageStore';
 	import gsap from 'gsap';
 	import CircleClock from '$lib/components/CircleClock.svelte';
@@ -162,8 +161,8 @@
 
 		const tl = gsap.timeline({
 			onComplete: () => {
-				if (dir === 'right') completeLocalTask(taskId);
-				else removeLocalTask(taskId);
+				if (dir === 'right') completeTask(taskId);
+				else removeTask(taskId);
 			}
 		});
 		// その場でフェードアウト（アイコンは bgEl の子なので bgEl と一緒に消える）

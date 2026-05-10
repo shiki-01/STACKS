@@ -1,5 +1,10 @@
 declare global {
-	namespace App {}
+	namespace App {
+		interface Locals {
+			sessionId: string | null;
+			isAuthenticated: boolean;
+		}
+	}
 }
 
 export {};
