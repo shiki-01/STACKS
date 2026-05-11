@@ -282,7 +282,7 @@
 	{#if $pomodoroPhase === 'idle'}
 		<div
 			bind:this={pageEl}
-			class="abs top:50% left:50% translate(-50%,-50%) w:422px square r:999px bg:base-6 inset:0 flex flex:column ai:center jc:center gap:20px"
+			class="abs top:50% left:50% translate(-50%,-50%) w:544px square r:999px bg:base-6 inset:0 flex flex:column ai:center jc:center gap:20px"
 		>
 			<div bind:this={clockEl} class="flex rel flex:column ai:center jc:center">
 				<div class="flex flex:row gap:20px">
