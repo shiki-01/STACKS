@@ -279,6 +279,20 @@
 			</div>
 		</div>
 
+		<!-- Wi-Fi QR -->
+		<div class="flex flex:column ai:center gap:6px" style="margin-top: 4px;">
+			<span class="f:0.6rem fg:base-3 user-select:none letter-spacing:0.08em" style="text-transform:uppercase;">
+				Wi-Fi
+			</span>
+			<a
+				href={resolve("/settings/wifi")}
+				class="f:0.65rem font-weight:700 px:12px py:4px r:99px"
+				style="background: #1a1a2a; border: 1px solid #3a3a5a; color: #7777cc; text-decoration:none; text-align:center;"
+			>
+				QR で接続
+			</a>
+		</div>
+
 		<!-- Google Tasks 連携 -->
 		<div class="flex flex:column ai:center gap:6px" style="margin-top: 4px;">
 			<span class="f:0.6rem fg:base-3 user-select:none letter-spacing:0.08em" style="text-transform:uppercase;">
