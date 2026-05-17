@@ -332,7 +332,8 @@
 		},
 
 		animateOut(_to, done) {
-			const tl = gsap.timeline({ onComplete: done });
+			// done() を 0.35s で先行発火させ、ナビゲーション処理をアニメーション末尾と重ねてフリーズを隠す
+			const tl = gsap.timeline();
 			if (taskCountEl) tl.to(taskCountEl, { y: 200, scale: 0.9, duration: 0.5, ease: EASE_IN });
 			if (tableContentEl) {
 				const cardEls = tableContentEl.querySelectorAll('.card-inner');
@@ -341,6 +342,7 @@
 				}
 				tl.to(tableContentEl, { scale: 1.06, duration: 0.28, ease: EASE_IN }, 0);
 			}
+			tl.call(done, [], 0.35);
 		}
 	});
 

@@ -107,11 +107,13 @@
 			const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;
 			const circleClockNode = circleClockEl?.firstElementChild as HTMLElement | null;
 			if (to === '/table') {
-				const tl = gsap.timeline({ onComplete: done });
+				// done() を 0.2s で先行発火させ、ナビゲーション処理をアニメーション末尾と重ねてフリーズを隠す
+				const tl = gsap.timeline();
 				if (canvas) tl.to(canvas, { scale: 1.2, duration: 0.3, ease: EASE_IN }, 0);
 				if (canvasWrap) tl.to(canvasWrap, { width: 200, height: 200, duration: 0.3, ease: EASE_IN }, 0);
 				tl.to(taskCountNode, { y: -400, duration: 0.3, ease: EASE_IN }, 0);
 				if (pageEl) tl.to(pageEl, { scale: 1, duration: 0.28, ease: EASE_IN }, 0);
+				tl.call(done, [], 0.2);
 				return;
 			}
 

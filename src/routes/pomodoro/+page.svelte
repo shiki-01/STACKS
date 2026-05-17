@@ -108,13 +108,18 @@
 		animateOut(to, done) {
 			const taskCountNode = taskCountEl?.firstElementChild as HTMLElement | null;
 			const circleClockNode = circleClockEl?.firstElementChild as HTMLElement | null;
-			const tl = gsap.timeline({ onComplete: done });
 			if (to === '/table') {
+				// done() を 0.3s で先行発火させ、ナビゲーション処理をアニメーション末尾と重ねてフリーズを隠す
+				const tl = gsap.timeline();
 				tl.to(taskCountNode, { y: -400, duration: 0.4, ease: EASE_IN }, 0);
 				tl.to(circleClockNode, { opacity: 0, duration: 0.4, ease: EASE_IN }, 0);
 				if (clockEl) tl.to(clockEl, { scale: 0.9, duration: 0.28, ease: EASE_IN }, 0);
 				if (pageEl) tl.to(pageEl, { width: 720, duration: 0.28, ease: EASE_IN }, 0);
-			} else if (to === '/clock') {
+				tl.call(done, [], 0.3);
+				return;
+			}
+			const tl = gsap.timeline({ onComplete: done });
+			if (to === '/clock') {
 				if (pageEl) tl.to(pageEl, { transform: 'translate(-100%,-50%)', opacity: 0, duration: 0.2, ease: EASE_IN }, 0);
 				tl.to(taskCountNode, { transform: 'translate(-50%,-100px) scale(1.2)', duration: 0.2, ease: EASE_IN }, 0);
 			} else {
