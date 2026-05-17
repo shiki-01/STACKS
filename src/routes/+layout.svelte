@@ -8,6 +8,7 @@
 	import { page } from '$app/state';
 	import { goto, beforeNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import type { HorizontalRoute, VerticalRoute } from '$lib/types';
 	import {
 		pushRotation,
 		pushClick
@@ -58,10 +59,10 @@
 		{ href: '/clock' },
 		{ href: '/stack' },
 		{ href: '/pomodoro' },
-	] as const;
+	] as const satisfies ReadonlyArray<{ href: HorizontalRoute }>;
 
 	// 垂直スワイプ（下から上）で開くページ群
-	const verticalRoutes = ['/table'] as const;
+	const verticalRoutes = ['/table'] as const satisfies ReadonlyArray<VerticalRoute>;
 
 
 	const currentIndex = $derived(
