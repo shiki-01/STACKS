@@ -326,7 +326,7 @@
 					duration: 0.3,
 					ease: EASE_OUT,
 					stagger: { amount: 0.12, from: 'center' },
-					delay: 0.05
+					delay: 0
 				});
 			}
 		},
@@ -334,15 +334,15 @@
 		animateOut(_to, done) {
 			// done() を 0.35s で先行発火させ、ナビゲーション処理をアニメーション末尾と重ねてフリーズを隠す
 			const tl = gsap.timeline();
-			if (taskCountEl) tl.to(taskCountEl, { y: 200, scale: 0.9, duration: 0.5, ease: EASE_IN });
+			if (taskCountEl) tl.to(taskCountEl, { y: 200, scale: 0.9, duration: 0.4, ease: EASE_IN });
 			if (tableContentEl) {
 				const cardEls = tableContentEl.querySelectorAll('.card-inner');
 				if (cardEls.length) {
-					tl.to(cardEls, { opacity: 0, y: -10, duration: 0.2, ease: EASE_IN, stagger: { amount: 0.1, from: 'center' } }, 0);
+					tl.to(cardEls, { opacity: 0, y: -10, duration: 0.4, ease: EASE_IN, stagger: { amount: 0.1, from: 'center' } }, 0);
 				}
-				tl.to(tableContentEl, { scale: 1.06, duration: 0.28, ease: EASE_IN }, 0);
+				tl.to(tableContentEl, { scale: 1.06, duration: 0.4, ease: EASE_IN }, 0);
 			}
-			tl.call(done, [], 0.35);
+			tl.call(done, [], 0.28);
 		}
 	});
 

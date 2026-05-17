@@ -99,8 +99,8 @@
 		// 猶予を作り、1フレームの素の状態フラッシュを防ぐ（0 にすると発生する）
 		if (layoutAnimFlags.skip) {
 			layoutAnimFlags.skip = false;
-			outParams = { x: 0, y: 0, duration: 30 };
-			inParams = { x: 0, y: 0, duration: 30 };
+			outParams = { x: 0, y: 0, duration: 0 };
+			inParams = { x: 0, y: 0, duration: 0 };
 			return;
 		}
 

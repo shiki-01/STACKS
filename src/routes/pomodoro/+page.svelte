@@ -29,7 +29,6 @@
 	let loopCount = $state(10);
 	let countMode = $state<'work' | 'rest' | 'loop'>('work');
 
-	// Knob baseline tracking (non-reactive)
 	// delta ベース：毎フレームの差分だけ見るので上限/下限でのデッドゾーンが生じない
 	let prevRotation = get(physicsRotation);
 	let rotAccum = 0; // サブステップ累積
@@ -111,11 +110,11 @@
 			if (to === '/table') {
 				// done() を 0.3s で先行発火させ、ナビゲーション処理をアニメーション末尾と重ねてフリーズを隠す
 				const tl = gsap.timeline();
-				tl.to(taskCountNode, { y: -400, duration: 0.4, ease: EASE_IN }, 0);
-				tl.to(circleClockNode, { opacity: 0, duration: 0.4, ease: EASE_IN }, 0);
-				if (clockEl) tl.to(clockEl, { scale: 0.9, duration: 0.28, ease: EASE_IN }, 0);
-				if (pageEl) tl.to(pageEl, { width: 720, duration: 0.28, ease: EASE_IN }, 0);
-				tl.call(done, [], 0.3);
+				tl.to(taskCountNode, { y: -400, duration: 0.3, ease: EASE_IN }, 0);
+				tl.to(circleClockNode, { opacity: 0, duration: 0.3, ease: EASE_IN }, 0);
+				if (clockEl) tl.to(clockEl, { scale: 0.9, duration: 0.3, ease: EASE_IN }, 0);
+				if (pageEl) tl.to(pageEl, { width: 720, duration: 0.3, ease: EASE_IN }, 0);
+				tl.call(done, [], 0.28);
 				return;
 			}
 			const tl = gsap.timeline({ onComplete: done });
